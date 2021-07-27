@@ -7,7 +7,6 @@ import struct
 from threading import Thread
 from load_model import edge_load_model
 import numpy as np
-import pickle
 model_dict = []
 param_dict = []
 tensor_dict = []
@@ -45,9 +44,9 @@ def send_loop(type):
             while True:
                 if(os.path.exists("./data/receive/model/client_infer_resnet18_cifar10.pdiparams") and
                 os.path.exists("./data/receive/model/client_infer_resnet18_cifar10.pdmodel")):
-                    time.sleep(5)
-                    tensor, costtime = edge_load_model(path_prefix="./data/receive/model/client_infer_resnet18_cifar10")
-                    print("Edge cost {}s infer Tensor {} ".format(costtime, index))
+                    time.sleep(2)
+                    tensor, edge_infer_time = edge_load_model(path_prefix="./data/receive/model/client_infer_resnet18_cifar10")
+                    print("Edge cost {}s infer Tensor {} ".format(edge_infer_time, index))
                     send_tensor(conn, tensor, index)
                     index += 1
                 # for filename in glob.glob(r'data/send/tensor/*.txt'):
@@ -75,11 +74,14 @@ def send_file(conn, filename):
     print("\nFile {} ({} MB) send finish.".format(filename, round(filesize/1000/1000,2)))
 
 def send_tensor(conn, tensor, name):
-    tensorsize = sys.getsizeof(tensor.tobytes())
+    view = memoryview(tensor).cast("B")
+    tensorsize = sys.getsizeof(view)
+    # 发送文件头信息
     dict = {
         'filename': name,
         'filesize': tensorsize,
-        'tensorshape':tensor.shape
+        'tensorshape':tensor.shape,
+        'starttime':time.time()
     }
     head_info = json.dumps(dict)
     head_info_len = struct.pack('i', len(head_info))
@@ -88,11 +90,10 @@ def send_tensor(conn, tensor, name):
     # 发送头部信息
     conn.send(head_info.encode('utf-8'))
     # 利用memoryview发送大数组
-    view = memoryview(tensor).cast("B")
     while len(view):
         nsent = conn.send(view)
         view = view[nsent:]
-    print("\nTensor {} ({} KB) send finish.\t Shape: {}".format(name, round(tensorsize/1000,2), tensor.shape))
+    print("Tensor {} ({} KB) send finish.\t Shape: {}".format(name, round(tensorsize/1000,3), tensor.shape))
 
 
 if __name__ == '__main__':

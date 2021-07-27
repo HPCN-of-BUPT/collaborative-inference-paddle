@@ -60,7 +60,7 @@ def recv_file(client):
             during_time = end_time - start_time
             filesize_mb = filesize / 1000 /1000
         print("\n{}({}MB) received correctly! Time: {}s\t Speed: {} MB/s".
-              format(filename.split("/")[-1], round(filesize_mb), round(during_time,2), round(filesize_mb / during_time, 2)))
+              format(filename.split("/")[-1], round(filesize_mb,2), round(during_time,2), round(filesize_mb / during_time, 2)))
 
 def recv_tensor(client):
     # 解析头部长度
@@ -68,16 +68,22 @@ def recv_tensor(client):
     head_len = struct.unpack('i', head_struct)[0]
     # 解析文件信息
     file_info = client.recv(head_len)
-    print(head_len)
+    # print(head_len)
     file_info = json.loads(file_info.decode('utf-8'))
     filesize = file_info['filesize']
     filename = file_info['filename']
     tensorshape = file_info['tensorshape']
+    start_time = file_info['starttime']
+    # 使用memoryview接收tensor
     tensor = np.array(np.random.random(tensorshape), dtype=core.NUMPY_TYPE)
     view = memoryview(tensor).cast('B')
     while len(view):
         nrecv = client.recv_into(view)
         view = view[nrecv:]
-    results, costtime = cloud_load_tensor(path_prefix="./data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
-    print("Cloud cost {}s infer Tensor {}".format(costtime, filename))
+    end_time = time.time()
+    tensor_transmit_time = round(end_time - start_time, 3)
+    print("Tensor {} received correctly.\t Cost {}s".format(filename, tensor_transmit_time))
+    # 云端计算剩余网络层
+    results, cloud_infer_time = cloud_load_tensor(path_prefix="./data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
+    print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     print("Tensor {}\t Result:{}".format(filename, results))
