@@ -84,6 +84,6 @@ def recv_tensor(client):
     tensor_transmit_time = round(end_time - start_time, 3)
     print("Tensor {} received correctly.\t Cost {}s".format(filename, tensor_transmit_time))
     # 云端计算剩余网络层
-    results, cloud_infer_time = cloud_load_tensor(path_prefix="./data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
+    results, cloud_infer_time = cloud_load_tensor(path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
     print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     print("Tensor {}\t Result:{}".format(filename, results))

@@ -1,5 +1,5 @@
 import numpy as np
-CLOUD_HOST = "172.24.32.13"
+CLOUD_HOST = "172.24.32.131"
 EDGE_HOST = "172.24.178.118"
 
 # EDGE_HOST = "172.24.32.13"
