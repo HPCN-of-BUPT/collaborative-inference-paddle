@@ -49,10 +49,6 @@ def send_loop(type):
                     print("Edge cost {}s infer Tensor {} ".format(edge_infer_time, index))
                     send_tensor(conn, tensor, index)
                     index += 1
-                # for filename in glob.glob(r'data/send/tensor/*.txt'):
-                #     if(filename not in tensor_dict):
-                #         tensor_dict.append(filename)
-                #         send_file(conn, filename)
 
 
 def send_file(conn, filename):
@@ -89,7 +85,7 @@ def send_tensor(conn, tensor, name):
     conn.send(head_info_len)
     # 发送头部信息
     conn.send(head_info.encode('utf-8'))
-    # 利用memoryview发送大数组
+    # 利用memoryview封装发送大数组
     while len(view):
         nsent = conn.send(view)
         view = view[nsent:]

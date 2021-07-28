@@ -19,7 +19,7 @@ def edge_load_model(path_prefix):
               feed={feed_target_names[0]: tensor_img},
               fetch_list=fetch_targets)
     end_time = time.time()
-    return np.array(results[0]), round(end_time - start_time, 2)
+    return np.array(results[0]), round(end_time - start_time, 3)
 
 def cloud_load_tensor(path_prefix, tensor):
     paddle.enable_static()
@@ -39,7 +39,7 @@ def cloud_load_tensor(path_prefix, tensor):
               fetch_list=fetch_targets)
     result = results[0].tolist()
     end_time = time.time()
-    return [result[i].index(max(result[i])) for i in range(len(result))], round(end_time - start_time, 2)
+    return [result[i].index(max(result[i])) for i in range(len(result))], round(end_time - start_time, 3)
 
 if __name__ == "__main__":
     for filename in glob.glob(r'data/send/model/client_*_infer.pdmodel'):
