@@ -23,5 +23,5 @@ if __name__ == '__main__':
     edge_client_thread = Thread(target=receive_loop, args=("edge", ))
 
     edge_server_thread.start()
-    time.sleep(1)
     edge_client_thread.start()
+    # print(time.time())

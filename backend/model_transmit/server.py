@@ -22,12 +22,12 @@ def send_loop(type):
                   format(core.CLOUD_HOST,core.CLOUD_SENTTO_EDGE,addr[0],addr[1]))
             while True:
                 # 发送pdmodel文件
-                for filename in glob.glob(r'data/send/model/client_infer_*.pdmodel'):
+                for filename in glob.glob(r'../data/send/model/client_infer_*.pdmodel'):
                     if(filename not in model_dict):
                         model_dict.append(filename)
                         send_file(conn, filename)
                 # 发送pdiparams文件
-                for filename in glob.glob(r'data/send/model/client_infer_*.pdiparams'):
+                for filename in glob.glob(r'../data/send/model/client_infer_*.pdiparams'):
                     if(filename not in param_dict):
                         param_dict.append(filename)
                         send_file(conn, filename)
@@ -42,13 +42,14 @@ def send_loop(type):
                   format(core.EDGE_HOST,core.EDGE_SENDTO_CLOUD,addr[0],addr[1]))
             index = 0
             while True:
-                if(os.path.exists("./data/receive/model/client_infer_resnet18_cifar10.pdiparams") and
-                os.path.exists("./data/receive/model/client_infer_resnet18_cifar10.pdmodel")):
+                if(os.path.exists("../data/receive/model/client_infer_resnet18_cifar10.pdiparams") and
+                os.path.exists("../data/receive/model/client_infer_resnet18_cifar10.pdmodel")):
                     time.sleep(2)
-                    tensor, edge_infer_time = edge_load_model(path_prefix="./data/receive/model/client_infer_resnet18_cifar10")
+                    tensor, edge_infer_time = edge_load_model(path_prefix="../data/receive/model/client_infer_resnet18_cifar10")
                     print("Edge cost {}s infer Tensor {} ".format(edge_infer_time, index))
                     send_tensor(conn, tensor, index)
                     index += 1
+                    # break
                 # for filename in glob.glob(r'data/send/tensor/*.txt'):
                 #     if(filename not in tensor_dict):
                 #         tensor_dict.append(filename)
@@ -74,6 +75,7 @@ def send_file(conn, filename):
     print("\nFile {} ({} MB) send finish.".format(filename, round(filesize/1000/1000,2)))
 
 def send_tensor(conn, tensor, name):
+    print(sys.getsizeof(tensor))
     view = memoryview(tensor).cast("B")
     tensorsize = sys.getsizeof(view)
     # 发送文件头信息
@@ -83,6 +85,7 @@ def send_tensor(conn, tensor, name):
         'tensorshape':tensor.shape,
         'starttime':time.time()
     }
+    print(time.time())
     head_info = json.dumps(dict)
     head_info_len = struct.pack('i', len(head_info))
     # 发送头部长度
@@ -90,9 +93,12 @@ def send_tensor(conn, tensor, name):
     # 发送头部信息
     conn.send(head_info.encode('utf-8'))
     # 利用memoryview发送大数组
+    print(tensor)
     while len(view):
         nsent = conn.send(view)
         view = view[nsent:]
+    view.release()
+    print(time.time())
     print("Tensor {} ({} KB) send finish.\t Shape: {}".format(name, round(tensorsize/1000,3), tensor.shape))
 
 
