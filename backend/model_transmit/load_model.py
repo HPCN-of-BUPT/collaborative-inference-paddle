@@ -1,3 +1,4 @@
+from sys import prefix
 import paddle
 import glob
 import numpy as np
@@ -42,13 +43,9 @@ def cloud_load_tensor(path_prefix, tensor):
     return [result[i].index(max(result[i])) for i in range(len(result))], round(end_time - start_time, 3)
 
 if __name__ == "__main__":
-    for filename in glob.glob(r'data/send/model/client_*_infer.pdmodel'):
-        print(filename)
-
-    tensor = edge_load_model("./data/send/model/client_infer_resnet18_cifar10")
-    print(type(tensor))
-    result = cloud_load_tensor(tensor)[0].tolist()
-    print([result[i].index(max(result[i])) for i in range(len(result))])
+    tensor,edge_infer_time = edge_load_model(path_prefix="../data/send/model/client_infer_resnet18_cifar10")
+    result,cloud_infer_time = cloud_load_tensor(path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
+    print(result)
 
 
 

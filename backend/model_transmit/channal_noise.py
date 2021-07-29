@@ -32,3 +32,12 @@ def reverse_float32(tensor, p = core.ERROR_RATE):
     x_tmp_filter = ~ (tensor_tmp ^ binomial_noise)
     x_tmp_filter = np.array(x_tmp_filter, dtype=np.float32)
     return x_tmp_filter/255.0
+
+if __name__ == "__main__":
+    tensor_int8 = np.array(np.random.randint(0,255,size=(1, 3, 32, 32)), dtype=np.int8)
+    print(tensor_int8)
+    print(reverse_int8(tensor_int8))
+
+    tensor_float32 = np.array(np.random.random(size=(1, 3, 32, 32)), dtype=np.float32)
+    print(tensor_float32)
+    print(reverse_float32(tensor_float32))
