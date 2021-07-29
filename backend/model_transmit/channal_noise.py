@@ -12,7 +12,7 @@ def reverse_int8(tensor, p = core.ERROR_RATE):
         np.random.binomial(1,p_complement,tensor.shape).astype(np.uint8) * 64 + \
         np.random.binomial(1,p_complement,tensor.shape).astype(np.uint8) * 128
     # 按位翻转
-    x_tmp_filter = np.array(tensor, dtype=np.uint8) & binomial_noise
+    x_tmp_filter = ~(np.array(tensor, dtype=np.uint8) ^ binomial_noise)
     # 恢复为int8类型
     x_tmp_filter = np.array(x_tmp_filter, dtype=np.int8)
     return x_tmp_filter
@@ -29,6 +29,6 @@ def reverse_float32(tensor, p = core.ERROR_RATE):
         np.random.binomial(1,p_complement,tensor.shape).astype(np.uint8) * 32 + \
         np.random.binomial(1,p_complement,tensor.shape).astype(np.uint8) * 64 + \
         np.random.binomial(1,p_complement,tensor.shape).astype(np.uint8) * 128
-    x_tmp_filter = tensor_tmp & binomial_noise
+    x_tmp_filter = ~ (tensor_tmp ^ binomial_noise)
     x_tmp_filter = np.array(x_tmp_filter, dtype=np.float32)
     return x_tmp_filter/255.0
