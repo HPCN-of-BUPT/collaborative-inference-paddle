@@ -7,6 +7,8 @@ import struct
 from threading import Thread
 from load_model import edge_load_model
 import numpy as np
+import channal_noise as cn
+import core
 model_dict = []
 param_dict = []
 tensor_dict = []
@@ -47,6 +49,11 @@ def send_loop(type):
                     time.sleep(2)
                     tensor, edge_infer_time = edge_load_model(path_prefix="../data/receive/model/client_infer_resnet18_cifar10")
                     print("Edge cost {}s infer Tensor {} ".format(edge_infer_time, index))
+                    # 二进制信道翻转
+                    if core.NUMPY_TYPE == np.int8:
+                        tensor = cn.reverse_int8(tensor=tensor)
+                    else:
+                        tensor = cn.reverse_float32(tensor=tensor)
                     send_tensor(conn, tensor, index)
                     index += 1
 

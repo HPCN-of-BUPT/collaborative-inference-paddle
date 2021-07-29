@@ -8,6 +8,7 @@
 - `edge.py`：启动端的发送和接收线程；
 - `core.py`：常量定义，包括host、port、buffersize等内容；
 - `load_model`：模型部署函数，包括云和端加载方法；
+- `channal_noise`：信道噪声，对原tensor进行二进制信道翻转；
 - `zip.py`：数据压缩，包括5种算法库，已封装；
 - data：数据存放文件夹（**该版本tensor文件夹省略，直接从内存中传输tensor**）
     - send：发送文件夹
@@ -21,15 +22,25 @@
 
 ```bash
 # 云进程
-$ python3 cloud.py --cloud_host "xxx.xxx.xxx.xxx" --edge_host "xxx.xxx.xxx.xxx" --cloud_port n --edge_port n 
+$ python3 cloud.py 
+    --cloud_host "xxx.xxx.xxx.xxx"  # 云IP
+    --edge_host "xxx.xxx.xxx.xxx"   # 端IP
+    --cloud_port xxxx   # 云接收端口
+    --edge_port xxxx    # 端接收端口
 
 # 端进程
-$ python3 edge.py --cloud_host "xxx.xxx.xxx.xxx" --edge_host "xxx.xxx.xxx.xxx" --cloud_port n --edge_port n
+$ python3 edge.py 
+    --cloud_host "xxx.xxx.xxx.xxx"  # 云IP
+    --edge_host "xxx.xxx.xxx.xxx"   # 端IP
+    --cloud_port xxxx   # 云接收端口
+    --edge_port xxxx    # 端接收端口
+    --numpy_type "int8"/"float32" # 模型数据类型
+    --channal_error 0~0.25 # 信道误码率
 ```
 
 Tips
 1. host为必须项，port为可选项，默认为：`8080（CLOUD_SENDTO_EDGE）`和`8081（EDGE_SENDTO_CLOUD）`。
-2. 接收和发送文件说明：模型包括`.pdmodel`模型架构和`.pdiparams`模型参数两个文件，~~特征为`.pdtensor`文件~~。
+2. 信道误码率默认为`0`，数据类型默认为`int8`。
 
 ## 运行示例：
 
@@ -48,7 +59,7 @@ Tips
 
 1. 云下发切割后的部分模型给端设备，包括模型骨架`*.pdmodel`和模型参数`*.pdiparams`两个文件；
 2. 输入待检测内容，端根据部分模型进行计算得到中间tensor；
-3. 端使用memoryview进行tensor的传输；
+3. 端加入信道干扰，对tensor进行二进制翻转，使用memoryview进行传输；
 4. 云根据中间tensor进行剩余部分的计算，得到最终结果；
 5. 云发送最终结果给端进行展示。
 
