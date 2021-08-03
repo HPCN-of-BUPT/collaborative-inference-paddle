@@ -11,7 +11,7 @@ import channal_noise as cn
 import core
 model_dict = []
 param_dict = []
-tensor_dict = []
+image_dict = []
 
 def send_loop(type):
     if type == 'cloud':
@@ -27,12 +27,12 @@ def send_loop(type):
                 for filename in glob.glob(r'../data/send/model/client_infer_*.pdmodel'):
                     if(filename not in model_dict):
                         model_dict.append(filename)
-                        send_file(conn, filename)
+                        # send_file(conn, filename)
                 # 发送pdiparams文件
                 for filename in glob.glob(r'../data/send/model/client_infer_*.pdiparams'):
                     if(filename not in param_dict):
                         param_dict.append(filename)
-                        send_file(conn, filename)
+                        # send_file(conn, filename)
 
     if type == 'edge':
         server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -42,20 +42,19 @@ def send_loop(type):
             conn, addr = server.accept()
             print("Edge Server(I) {} : {} has connected to Cloud client(others) {} : {}".
                   format(core.EDGE_HOST,core.EDGE_SENDTO_CLOUD,addr[0],addr[1]))
-            index = 0
             while True:
-                if(os.path.exists("../data/receive/model/client_infer_resnet18_cifar10.pdiparams") and
-                os.path.exists("../data/receive/model/client_infer_resnet18_cifar10.pdmodel")):
-                    time.sleep(2)
-                    tensor, edge_infer_time = edge_load_model(path_prefix="../data/receive/model/client_infer_resnet18_cifar10")
-                    print("Edge cost {}s infer Tensor {} ".format(edge_infer_time, index))
-                    # 二进制信道翻转
-                    if core.NUMPY_TYPE == np.int8:
-                        tensor = cn.reverse_int8(tensor=tensor)
-                    else:
-                        tensor = cn.reverse_float32(tensor=tensor)
-                    send_tensor(conn, tensor, index)
-                    index += 1
+                for filename in glob.glob(r'../data/test/*'):
+                    if filename not in image_dict:
+                        image_dict.append(filename)
+                        tensor, edge_infer_time = edge_load_model(path_prefix="../data/receive/model/client_infer_resnet18_cifar10",img=filename)
+                        print("Edge cost {}s infer {} ".format(edge_infer_time, filename))
+                        if tensor.dtype == "int8":
+                            tensor = cn.reverse_int8(tensor=tensor)
+                        else:
+                            tensor = cn.reverse_float32(tensor=tensor)
+                        send_tensor(conn, tensor, filename)
+                    # time.sleep(2)
+               
 
 
 def send_file(conn, filename):
@@ -96,8 +95,7 @@ def send_tensor(conn, tensor, name):
     while len(view):
         nsent = conn.send(view)
         view = view[nsent:]
-    print("Tensor {} ({} KB) send finish.\t Shape: {}".format(name, round(tensorsize/1000,3), tensor.shape))
-
+    print("Filename  {} mid-tensor ({} KB) send finish.\t Shape: {}".format(name, round(tensorsize/1000,3), tensor.shape))
 
 if __name__ == '__main__':
     edge_server = Thread(target=send_loop, args=("cloud", ))

@@ -67,10 +67,10 @@ def recv_file(client):
 def recv_tensor(client):
     # 解析头部长度
     head_struct = client.recv(4)
+    # start_time = time.time()
     head_len = struct.unpack('i', head_struct)[0]
     # 解析文件信息
     file_info = client.recv(head_len)
-    # print(head_len)
     file_info = json.loads(file_info.decode('utf-8'))
     filesize = file_info['filesize']
     filename = file_info['filename']
@@ -80,11 +80,11 @@ def recv_tensor(client):
     tensor = np.array(np.zeros(tensorshape), dtype=core.NUMPY_TYPE)
     recv_into(tensor, client)
     end_time = time.time()
-    tensor_transmit_time = round(end_time - start_time, 3)
+    tensor_transmit_time = round(end_time - start_time)
     print("Tensor {} received correctly.\t Transmit time {}s".format(filename, tensor_transmit_time))
     # 云端计算剩余网络层
-    print(tensor)
     results, cloud_infer_time = cloud_load_tensor(path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
+    # del tensor
     print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     print("Tensor {}\t Result:{}".format(filename, results))
 
