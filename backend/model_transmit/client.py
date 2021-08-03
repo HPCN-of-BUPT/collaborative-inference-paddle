@@ -20,7 +20,7 @@ def receive_loop(type):
                 print("Edge refused to connect, please start edge process!")
             time.sleep(2)
         while True:
-            recv_tensor(client)       
+            tensor_transmit_time,cloud_infer_time, results = recv_tensor(client)       
     elif type == "edge":
         while flag != 0:
             client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -87,6 +87,7 @@ def recv_tensor(client):
     # del tensor
     print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     print("Tensor {}\t Result:{}".format(filename, results))
+    return tensor_transmit_time,cloud_infer_time, results
 
 def recv_into(arr, source):
     view = memoryview(arr).cast('B')

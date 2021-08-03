@@ -46,14 +46,7 @@ def send_loop(type):
                 for filename in glob.glob(r'../data/test/*'):
                     if filename not in image_dict:
                         image_dict.append(filename)
-                        tensor, edge_infer_time = edge_load_model(path_prefix="../data/receive/model/client_infer_resnet18_cifar10",img=filename)
-                        print("Edge cost {}s infer {} ".format(edge_infer_time, filename))
-                        if tensor.dtype == "int8":
-                            tensor = cn.reverse_int8(tensor=tensor)
-                        else:
-                            tensor = cn.reverse_float32(tensor=tensor)
-                        send_tensor(conn, tensor, filename)
-                    # time.sleep(2)
+                        file_name,edge_infer_time,tensorsize = send_tensor(conn,filename)
                
 
 
@@ -75,12 +68,18 @@ def send_file(conn, filename):
         conn.sendall(data)
     print("\nFile {} ({} MB) send finish.".format(filename, round(filesize/1000/1000,2)))
 
-def send_tensor(conn, tensor, name):
+def send_tensor(conn, filename):
+    tensor, edge_infer_time = edge_load_model(path_prefix="../data/receive/model/client_infer_resnet18_cifar10",img=filename)
+    print("Edge cost {}s infer {} ".format(edge_infer_time, filename))
+    if tensor.dtype == "int8":
+        tensor = cn.reverse_int8(tensor=tensor)
+    else:
+        tensor = cn.reverse_float32(tensor=tensor)
     view = memoryview(tensor).cast("B")
     tensorsize = sys.getsizeof(view)
     # 发送文件头信息
     dict = {
-        'filename': name,
+        'filename': filename,
         'filesize': tensorsize,
         'tensorshape':tensor.shape,
         'starttime':time.time()
@@ -95,8 +94,8 @@ def send_tensor(conn, tensor, name):
     while len(view):
         nsent = conn.send(view)
         view = view[nsent:]
-    print("Filename  {} mid-tensor ({} KB) send finish.\t Shape: {}".format(name, round(tensorsize/1000,3), tensor.shape))
-
+    print("Filename  {} mid-tensor ({} KB) send finish.\t Shape: {}".format(filename, round(tensorsize/1000,3), tensor.shape))
+    return filename,edge_infer_time,tensorsize
 if __name__ == '__main__':
     edge_server = Thread(target=send_loop, args=("cloud", ))
     
