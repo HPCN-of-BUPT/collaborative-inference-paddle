@@ -50,7 +50,7 @@ def cut():
 def image_upload():
     file = request.files.get('file')
     #directory = 'static/images/'
-    directory = '../../backend/data/test'
+    directory = '../../backend/data/test/'
     file_path = directory + file.filename
     file.save(file_path)
     result = infer(file_path)
