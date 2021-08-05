@@ -43,7 +43,8 @@ def send_loop(type):
             print("Edge Server(I) {} : {} has connected to Cloud client(others) {} : {}".
                   format(core.EDGE_HOST,core.EDGE_SENDTO_CLOUD,addr[0],addr[1]))
             while True:
-                for filename in glob.glob(r'../data/test/*'):
+                for filename in glob.glob(r'../data/test/transtest/*'):
+                    # for filename in glob.glob(dirname + '/*'):
                     if filename not in image_dict:
                         image_dict.append(filename)
                         file_name,edge_infer_time,tensorsize = send_tensor(conn,filename)
