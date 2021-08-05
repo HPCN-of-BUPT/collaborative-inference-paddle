@@ -44,6 +44,7 @@ class ModelDivide(db.Model):
 class System(db.Model):
     __tablename__ = 'system'
     id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255)) #检测文件名
     tensorsize = db.Column(db.Float)#传输数据量
     transmit_time = db.Column(db.Float)#传输时间
     time = db.Column(db.Float)
