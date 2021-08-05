@@ -17,8 +17,9 @@
     - receive：接收文件夹
         - model：端接收到的切割模型
         - ~~tensor：云接收到的tensor特征~~
+    - test：用户上传测试文件
 
-## 启动方式
+## Quick Start
 
 ```bash
 # 云进程
@@ -34,15 +35,14 @@ $ python3 edge.py
     --edge_host "xxx.xxx.xxx.xxx"   # 端IP
     --cloud_port xxxx   # 云接收端口
     --edge_port xxxx    # 端接收端口
-    --numpy_type "int8"/"float32" # 模型数据类型
-    --channal_error 0~0.25 # 信道误码率
+    --channal_error 0~0.02 # 信道误码率
 ```
 
 Tips
 1. host为必须项，port为可选项，默认为：`8080（CLOUD_SENDTO_EDGE）`和`8081（EDGE_SENDTO_CLOUD）`。
-2. 信道误码率默认为`0`，数据类型默认为`int8`。
+2. 信道误码率默认为`0`。
 
-## 运行示例：
+## 运行示例
 
 ### 云服务器
 <div align=center> 
@@ -101,6 +101,8 @@ Tips
 
 ### 图像分类（cifar10 + Resnet18）
 `测试数据`：500（50*10）images
+
+`误码率`：(0,0.02,0.002)
 
 <div align=center> 
     <img src="./images/resnet18-cifar10.png" width=600>
