@@ -1,4 +1,4 @@
-import json, os, sys
+import json, glob
 import socket
 import struct
 
@@ -9,7 +9,7 @@ import time
 import numpy as np
 from processbar import process_bar
 from load_model import cloud_load_tensor
-import pickle
+
 def receive_loop(type):
     flag = -1
     if type == "cloud":
@@ -20,7 +20,7 @@ def receive_loop(type):
                 print("Edge refused to connect, please start edge process!")
             time.sleep(2)
         while True:
-            tensor_transmit_time,cloud_infer_time, results = recv_tensor(client)       
+            tensor_transmit_time,cloud_infer_time, results = recv_tensor(client)                  
     elif type == "edge":
         while flag != 0:
             client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -30,7 +30,7 @@ def receive_loop(type):
                 print("Cloud refused to connect, please start cloud process!")
             time.sleep(2)
         while True:
-            recv_file(client)  
+            recv_file(client)
 
 def recv_file(client):
     # 解析头部长度
@@ -87,6 +87,12 @@ def recv_tensor(client):
     # del tensor
     print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     print("Tensor {}\t Result:{}".format(filename, results))
+    core.TOTAL += 1
+    print(results[0])
+    print(filename.split('/')[-2])
+    if int(results[0]) == int(filename.split('/')[-1].split("_")[0]):
+        core.CORRECT += 1
+    print('Acc:{:.3f}'.format(core.CORRECT / core.TOTAL))  
     return tensor_transmit_time,cloud_infer_time, results
 
 def recv_into(arr, source):

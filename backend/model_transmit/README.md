@@ -45,16 +45,21 @@ Tips
 ## 运行示例：
 
 ### 云服务器
-<img src="./images/cloud_demo.jpg" width=600/>
+<div align=center> 
+    <img src="./images/cloud_demo.jpg" width=600/>
+</div>
 
 ### 端设备
-<img src="./images/edge_demo.png" width=600/>
+<div align=center> 
+    <img src="./images/edge_demo.png" width=600/>
+</div>
 
 ## 通信传输模块
 
 ### 流程图及解释
-<img src="./images/transmit_schedule.jpg" width=600/>
-
+<div align=center> 
+    <img src="./images/transmit_schedule.jpg" width=600/>
+</div>
 该项目涉及通信相关的内容：
 
 1. 云下发切割后的部分模型给端设备，包括模型骨架`*.pdmodel`和模型参数`*.pdiparams`两个文件；
@@ -93,6 +98,13 @@ Tips
 
 ### 数据类型
 目前提供两种输入类型，int8和float32，其中浮点型在翻转时会有精度损失（转型为int时造成的）。 
+
+### 图像分类（cifar10 + Resnet18）
+`测试数据`：500（50*10）images
+
+<div align=center> 
+    <img src="./images/resnet18-cifar10.png" width=600>
+</div>
 
 
 ## 数据压缩模块
