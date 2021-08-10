@@ -20,13 +20,12 @@ def receive_loop(type):
                 print("Edge refused to connect, please start edge process!")
             time.sleep(2)
         while True:
-            tensor_transmit_time,cloud_infer_time, results = recv_tensor(client)                  
+            infos = recv_tensor(client)                  
     elif type == "edge":
         while flag != 0:
             client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             flag = client.connect_ex((core.CLOUD_HOST, core.CLOUD_SENTTO_EDGE))
             if flag != 0 :
-                print(flag)
                 print("Cloud refused to connect, please start cloud process!")
             time.sleep(2)
         while True:
@@ -41,7 +40,6 @@ def recv_file(client):
     file_info = json.loads(file_info.decode('utf-8'))
     filesize = file_info['filesize']
     filename = file_info['filename']
-
     # 接收文件
     recv_len = 0
     start_time = time.time()
@@ -72,10 +70,11 @@ def recv_tensor(client):
     # 解析文件信息
     file_info = client.recv(head_len)
     file_info = json.loads(file_info.decode('utf-8'))
-    filesize = file_info['filesize']
+    tensorsize = file_info['filesize']
     filename = file_info['filename']
     tensorshape = file_info['tensorshape']
     start_time = file_info['starttime']
+    edge_time = file_info['edgeTime']
     # 使用memoryview接收tensor
     tensor = np.array(np.zeros(tensorshape), dtype=core.NUMPY_TYPE)
     recv_into(tensor, client)
@@ -84,16 +83,23 @@ def recv_tensor(client):
     print("Tensor {} received correctly.\t Transmit time {}s".format(filename, tensor_transmit_time))
     # 云端计算剩余网络层
     results, cloud_infer_time = cloud_load_tensor(path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
-    # del tensor
     print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     print("Tensor {}\t Result:{}".format(filename, results))
+    # ACC 测试
     core.TOTAL += 1
     print(results[0])
     print(filename.split('/')[-2])
     if int(results[0]) == int(filename.split('/')[-1].split("_")[0]):
         core.CORRECT += 1
-    print('Acc:{:.3f}'.format(core.CORRECT / core.TOTAL))  
-    return tensor_transmit_time,cloud_infer_time, results
+    print('Acc:{:.3f}'.format(core.CORRECT / core.TOTAL))
+    # 记录信息
+    infos = {'filename':filename,
+             'tensorsize':tensorsize,
+             'edgetime':edge_time,
+             'cloudtime':cloud_infer_time,
+             'transmittime':tensor_transmit_time,
+             'result':results}  
+    return infos
 
 def recv_into(arr, source):
     view = memoryview(arr).cast('B')

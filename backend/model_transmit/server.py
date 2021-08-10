@@ -83,7 +83,8 @@ def send_tensor(conn, filename):
         'filename': filename,
         'filesize': tensorsize,
         'tensorshape':tensor.shape,
-        'starttime':time.time()
+        'starttime':time.time(),
+        'edgetime':edge_infer_time,
     }
     print(time.time())
     head_info = json.dumps(dict)
