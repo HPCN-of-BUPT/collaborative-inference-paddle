@@ -44,10 +44,9 @@ def send_loop(type):
                   format(core.EDGE_HOST,core.EDGE_SENDTO_CLOUD,addr[0],addr[1]))
             while True:
                 for filename in glob.glob(r'../data/test/transtest/*'):
-                    # for filename in glob.glob(dirname + '/*'):
                     if filename not in image_dict:
                         image_dict.append(filename)
-                        file_name,edge_infer_time,tensorsize = send_tensor(conn,filename)
+                        send_tensor(conn=conn,filename=filename,model_prefix="../data/receive/model/client_infer_resnet18_cifar10")
                
 
 
@@ -69,8 +68,8 @@ def send_file(conn, filename):
         conn.sendall(data)
     print("\nFile {} ({} MB) send finish.".format(filename, round(filesize/1000/1000,2)))
 
-def send_tensor(conn, filename):
-    tensor, edge_infer_time = edge_load_model(path_prefix="../data/receive/model/client_infer_resnet18_cifar10",img=filename)
+def send_tensor(conn, filename, model_prefix):
+    tensor, edge_infer_time = edge_load_model(path_prefix=model_prefix,img=filename)
     print("Edge cost {}s infer {} ".format(edge_infer_time, filename))
     if tensor.dtype == "int8":
         tensor = cn.reverse_int8(tensor=tensor)
@@ -97,7 +96,8 @@ def send_tensor(conn, filename):
     while len(view):
         nsent = conn.send(view)
         view = view[nsent:]
-    print("Filename  {} mid-tensor ({} KB) send finish.\t Shape: {}".format(filename, round(tensorsize/1000,3), tensor.shape))
+    print("Filename  {} mid-tensor ({} KB) send finish.\t Shape: {}".
+        format(filename, round(tensorsize/1000,3), tensor.shape))
     return filename,edge_infer_time,tensorsize
 if __name__ == '__main__':
     edge_server = Thread(target=send_loop, args=("cloud", ))
