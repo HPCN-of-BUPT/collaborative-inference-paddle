@@ -1,13 +1,15 @@
-import json, os, sys
+import json, glob
 import socket
 import struct
+
+from numpy.core.einsumfunc import _einsum_path_dispatcher
 import core
 import json
 import time
 import numpy as np
 from processbar import process_bar
 from load_model import cloud_load_tensor
-import pickle
+
 def receive_loop(type):
     flag = -1
     if type == "cloud":
@@ -18,7 +20,7 @@ def receive_loop(type):
                 print("Edge refused to connect, please start edge process!")
             time.sleep(2)
         while True:
-            recv_tensor(client)       
+            tensor_transmit_time,cloud_infer_time, results = recv_tensor(client)                  
     elif type == "edge":
         while flag != 0:
             client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -28,7 +30,7 @@ def receive_loop(type):
                 print("Cloud refused to connect, please start cloud process!")
             time.sleep(2)
         while True:
-            recv_file(client)  
+            recv_file(client)
 
 def recv_file(client):
     # 解析头部长度
@@ -65,26 +67,36 @@ def recv_file(client):
 def recv_tensor(client):
     # 解析头部长度
     head_struct = client.recv(4)
+    # start_time = time.time()
     head_len = struct.unpack('i', head_struct)[0]
     # 解析文件信息
     file_info = client.recv(head_len)
-    # print(head_len)
     file_info = json.loads(file_info.decode('utf-8'))
     filesize = file_info['filesize']
     filename = file_info['filename']
     tensorshape = file_info['tensorshape']
     start_time = file_info['starttime']
     # 使用memoryview接收tensor
-    tensor = np.array(np.random.random(tensorshape), dtype=core.NUMPY_TYPE)
-    view = memoryview(tensor).cast('B')
-    while len(view):
-        nrecv = client.recv_into(view)
-        view = view[nrecv:]
-    view.release()
+    tensor = np.array(np.zeros(tensorshape), dtype=core.NUMPY_TYPE)
+    recv_into(tensor, client)
     end_time = time.time()
-    tensor_transmit_time = round(end_time - start_time, 3)
-    print("Tensor {} received correctly.\t Cost {}s".format(filename, tensor_transmit_time))
+    tensor_transmit_time = round(end_time - start_time)
+    print("Tensor {} received correctly.\t Transmit time {}s".format(filename, tensor_transmit_time))
     # 云端计算剩余网络层
     results, cloud_infer_time = cloud_load_tensor(path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
+    # del tensor
     print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     print("Tensor {}\t Result:{}".format(filename, results))
+    core.TOTAL += 1
+    print(results[0])
+    print(filename.split('/')[-2])
+    if int(results[0]) == int(filename.split('/')[-1].split("_")[0]):
+        core.CORRECT += 1
+    print('Acc:{:.3f}'.format(core.CORRECT / core.TOTAL))  
+    return tensor_transmit_time,cloud_infer_time, results
+
+def recv_into(arr, source):
+    view = memoryview(arr).cast('B')
+    while len(view):
+        nrecv = source.recv_into(view)
+        view = view[nrecv:]

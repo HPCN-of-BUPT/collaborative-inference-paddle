@@ -38,20 +38,35 @@ import numpy as np
 # plt.ylabel('Zip Ratio(after zip/before zip)')
 
 # unzip time
-gzip_unziptime = np.array([0.02,0.07,0.1,0.27,0.53,0.58,1.0])
-bz2_unziptime = np.array([0.16,0.63,0.91,2.41,4.32,5.02,9.02])
-lzma_unziptime = np.array([0.31,1.29,1.77,5.0,8.96,10.42,19])
-zipfile_unziptime = np.array([0.02,0.06,0.09,0.23,0.48,0.53,0.97])
-tarfile_unziptime = np.array([0.03,0.12,0.17,0.49,0.91,1.02,1.85])
-x = np.array([3,11.8,17,46.8,87.3,102,184])
+# gzip_unziptime = np.array([0.02,0.07,0.1,0.27,0.53,0.58,1.0])
+# bz2_unziptime = np.array([0.16,0.63,0.91,2.41,4.32,5.02,9.02])
+# lzma_unziptime = np.array([0.31,1.29,1.77,5.0,8.96,10.42,19])
+# zipfile_unziptime = np.array([0.02,0.06,0.09,0.23,0.48,0.53,0.97])
+# tarfile_unziptime = np.array([0.03,0.12,0.17,0.49,0.91,1.02,1.85])
+# x = np.array([3,11.8,17,46.8,87.3,102,184])
 
-plt.plot(x,gzip_unziptime,label='gzip',marker='o',markersize=5)
-plt.plot(x,bz2_unziptime,label='bz2',marker='P',markersize=5)
-plt.plot(x,lzma_unziptime,label='lzma',marker='X',markersize=5)
-plt.plot(x,zipfile_unziptime,label='zipfile',marker='D',markersize=5)
-plt.plot(x,tarfile_unziptime,label='tarfile',marker='^',markersize=5)
+# plt.plot(x,gzip_unziptime,label='gzip',marker='o',markersize=5)
+# plt.plot(x,bz2_unziptime,label='bz2',marker='P',markersize=5)
+# plt.plot(x,lzma_unziptime,label='lzma',marker='X',markersize=5)
+# plt.plot(x,zipfile_unziptime,label='zipfile',marker='D',markersize=5)
+# plt.plot(x,tarfile_unziptime,label='tarfile',marker='^',markersize=5)
 
-plt.xlabel('File Size(MB)')
-plt.ylabel('Unzip Time(s)')
+# plt.xlabel('File Size(MB)')
+# plt.ylabel('Unzip Time(s)')
+# plt.legend()
+# plt.show()
+
+# Channal Rate
+'''
+    Cifar10-Resnet18 test:500 imgs
+'''
+cifar10_resnet18 = np.array([66.6, 66.56, 66.52, 66.14,65.88, 65.8, 65.56, 65, 64.6 ,64.44, 64.12])
+
+x = np.arange(0,0.022,0.002)
+
+plt.plot(x,cifar10_resnet18,label='cifar10_resnet18',marker='o',markersize=5)
+
+plt.xlabel('Channal Error Rate')
+plt.ylabel('Acc')
 plt.legend()
 plt.show()

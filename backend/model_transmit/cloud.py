@@ -19,7 +19,8 @@ if __name__ == '__main__':
     core.CLOUD_SENTTO_EDGE = args.cloud_port if args.cloud_port else core.CLOUD_SENTTO_EDGE
     core.EDGE_SENDTO_CLOUD = args.edge_port if args.edge_port else core.EDGE_SENDTO_CLOUD
    
-    cloud_server_thread = Thread(target=send_loop, args=("cloud", ))
-    cloud_client_thread = Thread(target=receive_loop, args=("cloud", ))
+    cloud_server_thread = Thread(target=send_loop, args=("cloud", ),name="cloud_server_thread")
+    cloud_client_thread = Thread(target=receive_loop, args=("cloud", ),name="cloud_client_thread")
     cloud_server_thread.start()
     cloud_client_thread.start()
+    # print(time.time())

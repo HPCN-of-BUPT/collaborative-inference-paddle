@@ -8,6 +8,7 @@
 - `edge.py`：启动端的发送和接收线程；
 - `core.py`：常量定义，包括host、port、buffersize等内容；
 - `load_model`：模型部署函数，包括云和端加载方法；
+- `channal_noise`：信道噪声，对原tensor进行二进制信道翻转；
 - `zip.py`：数据压缩，包括5种算法库，已封装；
 - data：数据存放文件夹（**该版本tensor文件夹省略，直接从内存中传输tensor**）
     - send：发送文件夹
@@ -16,39 +17,54 @@
     - receive：接收文件夹
         - model：端接收到的切割模型
         - ~~tensor：云接收到的tensor特征~~
+    - test：用户上传测试文件
 
-## 启动方式
+## Quick Start
 
 ```bash
 # 云进程
-$ python3 cloud.py --cloud_host "xxx.xxx.xxx.xxx" --edge_host "xxx.xxx.xxx.xxx" --cloud_port n --edge_port n 
+$ python3 cloud.py 
+    --cloud_host "xxx.xxx.xxx.xxx"  # 云IP
+    --edge_host "xxx.xxx.xxx.xxx"   # 端IP
+    --cloud_port xxxx   # 云接收端口
+    --edge_port xxxx    # 端接收端口
 
 # 端进程
-$ python3 edge.py --cloud_host "xxx.xxx.xxx.xxx" --edge_host "xxx.xxx.xxx.xxx" --cloud_port n --edge_port n
+$ python3 edge.py 
+    --cloud_host "xxx.xxx.xxx.xxx"  # 云IP
+    --edge_host "xxx.xxx.xxx.xxx"   # 端IP
+    --cloud_port xxxx   # 云接收端口
+    --edge_port xxxx    # 端接收端口
+    --channal_error 0~0.02 # 信道误码率
 ```
 
 Tips
 1. host为必须项，port为可选项，默认为：`8080（CLOUD_SENDTO_EDGE）`和`8081（EDGE_SENDTO_CLOUD）`。
-2. 接收和发送文件说明：模型包括`.pdmodel`模型架构和`.pdiparams`模型参数两个文件，~~特征为`.pdtensor`文件~~。
+2. 信道误码率默认为`0`。
 
-## 运行示例：
+## 运行示例
 
 ### 云服务器
-<img src="./images/cloud_demo.jpg" width=600/>
+<div align=center> 
+    <img src="./images/cloud_demo.jpg" width=600/>
+</div>
 
 ### 端设备
-<img src="./images/edge_demo.png" width=600/>
+<div align=center> 
+    <img src="./images/edge_demo.png" width=600/>
+</div>
 
 ## 通信传输模块
 
 ### 流程图及解释
-<img src="./images/transmit_schedule.jpg" width=600/>
-
+<div align=center> 
+    <img src="./images/transmit_schedule.jpg" width=600/>
+</div>
 该项目涉及通信相关的内容：
 
 1. 云下发切割后的部分模型给端设备，包括模型骨架`*.pdmodel`和模型参数`*.pdiparams`两个文件；
 2. 输入待检测内容，端根据部分模型进行计算得到中间tensor；
-3. 端使用memoryview进行tensor的传输；
+3. 端加入信道干扰，对tensor进行二进制翻转，使用memoryview进行传输；
 4. 云根据中间tensor进行剩余部分的计算，得到最终结果；
 5. 云发送最终结果给端进行展示。
 
@@ -65,6 +81,33 @@ Tips
 
 1. 发送特征线程，该线程~~轮询检测`data/send/tensor`中是否有新生成的tensor，若有则发送至云~~定时随机生成tensor；
 2. 接收模型线程，该线程连接至云发送端口，接收切割模型并保存至`data/receive/model`；
+
+## 信道干扰模块
+
+### 定义
+`泛化准确率`:二进制翻转信道上，误码率为p时的准确率。其中，在二进制翻转信道上，对于传输的每一位，该信道有p的概率将此位反转。此外，一般的准确率即p=0时的泛化准确率。
+
+### 实现方式
+根据误码率大生成小为tensor_shape的翻转向量R，R属于0或1。其中0代表该位翻转，1代表该位不翻转，则有以下情况
+1. 原始：0，翻转位：0 --> 结果：1
+2. 原始：0，翻转位：1 --> 结果：0
+3. 原始：1，翻转位：0 --> 结果：0
+4. 原始：1，翻转位：1 --> 结果：1
+
+若原始数据为X，翻转后的向量为Y，则`Y = ~ (X ^ R)`
+
+### 数据类型
+目前提供两种输入类型，int8和float32，其中浮点型在翻转时会有精度损失（转型为int时造成的）。 
+
+### 图像分类（cifar10 + Resnet18）
+`测试数据`：500（50*10）images
+
+`误码率`：(0,0.02,0.002)
+
+<div align=center> 
+    <img src="./images/resnet18-cifar10.png" width=600>
+</div>
+
 
 ## 数据压缩模块
 

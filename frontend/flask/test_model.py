@@ -4,17 +4,9 @@ import numpy as np
 import time
 import cv2
 import paddle.vision.transforms as T
-# from paddlelite.lite import *
-
-def image_size(img, height, width):
-    image = cv2.imread(img)
-    # pre_height, pre_width = 
-    # height_ratio, width_ratio = 
 
 def image_preprocess(img):
-    # print(img)
     image = cv2.imread(img)
-    image = cv2.resize(image, dsize=(32,32), fx=1, fy=1, interpolation=cv2.INTER_LINEAR)
     trans = T.Compose([T.Transpose(), T.Normalize((0.4914, 0.4822, 0.4465),(0.2470, 0.2435, 0.2616))])
     image = trans(image)
     image = np.expand_dims(image,0)
@@ -61,20 +53,15 @@ def cloud_load_tensor(path_prefix, tensor):
     end_time = time.time()
     return [result[i].index(max(result[i])) for i in range(len(result))], round(end_time - start_time, 3)
 
-# def edge_load_model_by_lite(path_prefix):
-#     config = MobileConfig()
+def infer(img_path):
+    tensor, edge_infer_time = edge_load_model(path_prefix="../../backend/data/send/model/client_infer_resnet18_cifar10",img=img_path)
+    result, cloud_infer_time = cloud_load_tensor(path_prefix="../../backend/data/send/model/server_infer_resnet18_cifar10",
+                                                 tensor=tensor)
+    return result[0]
 
 if __name__ == "__main__":
-    tensor,edge_infer_time = edge_load_model(
-        path_prefix="../data/send/model/client_infer_resnet18_cifar10",
-        img="../data/test/air.jpeg")
-
-    result,cloud_infer_time = cloud_load_tensor(
-        path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
-    # print(result)
-
-
-
-
-
-
+    result = infer('./static/images/8_120.png')
+    print(result[0])
+    #print(tensor)
+    #result = cloud_load_tensor("./model/server_infer_resnet18_cifar10",tensor)[0].tolist()
+    #print([result[i].index(max(result[i])) for i in range(len(result))])
