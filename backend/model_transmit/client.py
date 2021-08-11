@@ -79,11 +79,11 @@ def recv_tensor(client, model_prefix):
         tensor_list.append(tensor)
     end_time = time.time()
     tensor_transmit_time = round(end_time - starttime)
-    print("Tensor {} received correctly.\t Transmit time {}s".format(filename, tensor_transmit_time))
+    # print("Tensor {} received correctly.\t Transmit time {}s".format(filename, tensor_transmit_time))
     # 云端计算剩余网络层
     results, cloud_infer_time = cloud_load_tensor_yolo(image_shape=np.array(imageshape, dtype=np.int32),tensor=tensor_list,model_path=model_prefix,img_dir=core.LOAD_DIR,img_name=filename)
-    print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
-    print("Tensor {}\t Result:{}".format(filename, results))
+    # print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
+    # print("Tensor {}\t Result:{}".format(filename, results))
 
     # ACC 测试
     # core.TOTAL += 1
@@ -95,11 +95,12 @@ def recv_tensor(client, model_prefix):
 
     # 记录信息
     infos = {'filename':filename,
-             'tensorsize':tensorsize,
              'edgetime':edgetime,
              'cloudtime':cloud_infer_time,
+             'transmitsize':tensorsize * len(tensor_list),
              'transmittime':tensor_transmit_time,
              'result':results}
+    print("\nTransmit info of " + infos['filename'])
     print(infos)  
     return infos
 

@@ -46,7 +46,6 @@ def send_loop(type):
             while True:
                 for filename in glob.glob(os.path.join(core.LOAD_DIR, "*.jpg")):
                     if filename not in image_dict:
-                        print(filename)
                         image_dict.append(filename)
                         send_tensor(conn=conn,filename=filename.split("/")[-1],model_prefix=core.EDGE_MODEL_DIR)
                 # send_tensor(conn=conn,filename='dog.jpg',model_prefix="../data/send/model/split_pruned_client")
@@ -75,11 +74,10 @@ def send_file(conn, filename):
 
 def send_tensor(conn, filename, model_prefix):
     image_shape, tensor_list, edge_infer_time = edge_load_model_yolo(model_path=model_prefix, img_dir=core.LOAD_DIR, img_name=filename)
-    print("Edge cost {}s infer {} ".format(edge_infer_time, filename))
+    print("\nEdge cost {}s infer {} ".format(edge_infer_time, filename))
 
-    tensorsize = sys.getsizeof(tensor_list)
+    tensorsize = sys.getsizeof(tensor_list[0])
     tensorshape = get_tensor_shape(tensor_list)
-    print("Tensor list size:" + str(tensorsize))
     # 发送文件头信息
     dict = {
         'filename': filename,
@@ -106,8 +104,8 @@ def send_tensor(conn, filename, model_prefix):
         while len(view):
             nsent = conn.send(view)
             view = view[nsent:]
-        print("Filename  {} mid-tensor ({} KB) send finish.\t Shape: {}".
-            format(filename, round(tensorsize/1000,3), tensor.shape))
+        print("{} mid-tensor{} ({} KB).\t Shape: {}".
+            format(filename, index, round(tensorsize/1000,3), tensor.shape))
     return filename,edge_infer_time,tensorsize
 
 def get_tensor_shape(tensor_list):

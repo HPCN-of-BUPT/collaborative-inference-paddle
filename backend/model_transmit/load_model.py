@@ -84,7 +84,6 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
             draw.text(( xmin + 5, ymin + 5), 
                         label_names[int(label)] + ' ' + str(round(score * 100, 2)) + "%", 
                         "#" + color[c], font=font)
-            print(label)
     return img
 
 def edge_load_model_yolo(model_path, img_dir, img_name):

@@ -6,18 +6,15 @@
 - `server.py`：服务端发送文件，对于云发送分割模型，对于端发送tensor；
 - `cloud.py`：启动云的发送和接收线程；
 - `edge.py`：启动端的发送和接收线程；
-- `core.py`：常量定义，包括host、port、buffersize等内容；
-- `load_model`：模型部署函数，包括云和端加载方法；
+- `core.py`：配置参数；
+- `load_model`：模型部署函数，包括云和端加载方法（图像分类/目标检测）；
 - `channal_noise`：信道噪声，对原tensor进行二进制信道翻转；
 - `zip.py`：数据压缩，包括5种算法库，已封装；
-- data：数据存放文件夹（**该版本tensor文件夹省略，直接从内存中传输tensor**）
-    - send：发送文件夹
-        - model：云要发送的切割模型
-        - ~~tensor：端要发送的tensor特征~~
-    - receive：接收文件夹
-        - model：端接收到的切割模型
-        - ~~tensor：云接收到的tensor特征~~
-    - test：用户上传测试文件
+- data：存储数据
+    - send：云要发送切割模型存储路径
+    - receive：端接收到切割模型存储路径
+    - test：用户上传测试图片路径
+    - output：检测结果保存路径
 
 ## Quick Start
 
@@ -39,12 +36,22 @@ $ python3 edge.py
 ```
 
 Tips
-1. host为必须项，port为可选项，默认为：`8080（CLOUD_SENDTO_EDGE）`和`8081（EDGE_SENDTO_CLOUD）`。
+1. host默认为本机测试：`127.0.0.1（CLOUD_HOST）`和`127.0.0.1（EDGE_HOST）`，port默认为：`8080（CLOUD_SENDTO_EDGE）`和`8081（EDGE_SENDTO_CLOUD）`，云端和边端启动参数应相同。
 2. 信道误码率默认为`0`。
 
-## 运行示例
+## 运行示例(目标检测)
 
 ### 云服务器
+<div align=center> 
+    <img src="./images/cloud_demo_od.png" width=600/>
+</div>
+
+### 端设备
+<div align=center> 
+    <img src="./images/edge_demo_od.png" width=600/>
+</div>
+
+<!-- ### 云服务器
 <div align=center> 
     <img src="./images/cloud_demo.jpg" width=600/>
 </div>
@@ -52,7 +59,7 @@ Tips
 ### 端设备
 <div align=center> 
     <img src="./images/edge_demo.png" width=600/>
-</div>
+</div> -->
 
 ## 通信传输模块
 
@@ -74,13 +81,13 @@ Tips
 
 云：
 
-1. 发送模型线程，该线程轮询检测`data/send/model`中是否有新产生的模型，若有则发送至端；
-2. 接收特征线程，该线程连接至端发送端口，接收中间特征~~并保存至`data/receive/tensor`；~~
+1. 发送模型线程，该线程轮询检测`data/send`中是否有新产生的模型，若有则发送至端；
+2. 接收特征线程，该线程连接至端发送端口，接收中间特征并进行剩余运算；
 
 端：
 
-1. 发送特征线程，该线程~~轮询检测`data/send/tensor`中是否有新生成的tensor，若有则发送至云~~定时随机生成tensor；
-2. 接收模型线程，该线程连接至云发送端口，接收切割模型并保存至`data/receive/model`；
+1. 发送特征线程，该线程根据`data/test`文件夹内容判断是否有新上传的图片；
+2. 接收模型线程，该线程连接至云发送端口，接收切割模型并保存至`data/receive`；
 
 ## 信道干扰模块
 
