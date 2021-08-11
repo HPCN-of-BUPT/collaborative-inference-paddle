@@ -2,13 +2,12 @@ import json, glob
 import socket
 import struct
 
-from numpy.core.einsumfunc import _einsum_path_dispatcher
 import core
 import json
 import time
 import numpy as np
 from processbar import process_bar
-from load_model import cloud_load_tensor
+from load_model import cloud_load_tensor_yolo
 
 def receive_loop(type):
     flag = -1
@@ -20,7 +19,7 @@ def receive_loop(type):
                 print("Edge refused to connect, please start edge process!")
             time.sleep(2)
         while True:
-            infos = recv_tensor(client=client, model_prefix="../data/send/model/server_infer_resnet18_cifar10")                  
+            infos = recv_tensor(client=client, model_prefix=core.CLOUD_MODEL_DIR)                  
     elif type == "edge":
         while flag != 0:
             client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -70,27 +69,29 @@ def recv_tensor(client, model_prefix):
     # 解析文件信息
     file_info = client.recv(head_len)
     file_info = json.loads(file_info.decode('utf-8'))
-    tensorsize,filename,tensorshape,starttime,edgetime = file_info['filesize'],file_info['filename'],file_info['tensorshape'],file_info['starttime'],file_info['edgeTime']
+    tensorsize,filename,tensorshape,imageshape,starttime,edgetime = file_info['filesize'],file_info['filename'],file_info['tensorshape'],file_info['imageshape'],file_info['starttime'],file_info['edgetime']
     
     # 使用memoryview接收tensor
-    tensor = np.array(np.zeros(tensorshape), dtype=core.NUMPY_TYPE)
-    recv_into(tensor, client)
+    tensor_list = []
+    for i,shape in enumerate(tensorshape):
+        tensor = np.array(np.zeros(shape), dtype=core.NUMPY_TYPE)
+        recv_into(tensor, client)
+        tensor_list.append(tensor)
     end_time = time.time()
     tensor_transmit_time = round(end_time - starttime)
     print("Tensor {} received correctly.\t Transmit time {}s".format(filename, tensor_transmit_time))
-
     # 云端计算剩余网络层
-    results, cloud_infer_time = cloud_load_tensor(path_prefix=model_prefix,tensor=tensor)
+    results, cloud_infer_time = cloud_load_tensor_yolo(image_shape=np.array(imageshape, dtype=np.int32),tensor=tensor_list,model_path=model_prefix,img_dir=core.LOAD_DIR,img_name=filename)
     print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     print("Tensor {}\t Result:{}".format(filename, results))
 
     # ACC 测试
-    core.TOTAL += 1
-    print(results[0])
-    print(filename.split('/')[-2])
-    if int(results[0]) == int(filename.split('/')[-1].split("_")[0]):
-        core.CORRECT += 1
-    print('Acc:{:.3f}'.format(core.CORRECT / core.TOTAL))
+    # core.TOTAL += 1
+    # print(results[0])
+    # print(filename.split('/')[-2])
+    # if int(results[0]) == int(filename.split('/')[-1].split("_")[0]):
+    #     core.CORRECT += 1
+    # print('Acc:{:.3f}'.format(core.CORRECT / core.TOTAL))
 
     # 记录信息
     infos = {'filename':filename,
@@ -98,7 +99,8 @@ def recv_tensor(client, model_prefix):
              'edgetime':edgetime,
              'cloudtime':cloud_infer_time,
              'transmittime':tensor_transmit_time,
-             'result':results}  
+             'result':results}
+    print(infos)  
     return infos
 
 def recv_into(arr, source):
