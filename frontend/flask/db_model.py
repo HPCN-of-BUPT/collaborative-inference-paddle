@@ -29,7 +29,6 @@ class Submodel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     flops = db.Column(db.Float)
     params = db.Column(db.Float)
-    infer_time = db.Column(db.Float)#推理时间（云-边模型：云边协同比）
     type = db.Column(db.Integer)#模型类型 0：云-边模型  1：云模型  2：边模型
     model_divide_id = db.Column(db.Integer)
 
@@ -46,6 +45,9 @@ class System(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255)) #检测文件名
     tensorsize = db.Column(db.Float)#传输数据量
+    edge_infer_time = db.Column(db.Float) #边推理时间
+    cloud_infer_time = db.Column(db.Float) #云推理时间
+    cloud_edge_ratio = db.Column(db.Float) #云边协同比
     transmit_time = db.Column(db.Float)#传输时间
     time = db.Column(db.Float)
     accuracy = db.Column(db.Float)
