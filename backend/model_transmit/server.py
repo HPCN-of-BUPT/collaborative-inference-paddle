@@ -48,10 +48,6 @@ def send_loop(type):
                     if filename not in image_dict:
                         image_dict.append(filename)
                         send_tensor(conn=conn,filename=filename.split("/")[-1],model_prefix=core.EDGE_MODEL_DIR)
-                # send_tensor(conn=conn,filename='dog.jpg',model_prefix="../data/send/model/split_pruned_client")
-                # time.sleep(5)
-                # send_tensor(conn=conn,filename='eagle.jpg',model_prefix="../data/send/model/split_pruned_client")
-                # break
 
 
 def send_file(conn, filename):
@@ -76,14 +72,14 @@ def send_tensor(conn, filename, model_prefix):
     image_shape, tensor_list, edge_infer_time = edge_load_model_yolo(model_path=model_prefix, img_dir=core.LOAD_DIR, img_name=filename)
     print("\nEdge cost {}s infer {} ".format(edge_infer_time, filename))
 
-    tensorsize = sys.getsizeof(tensor_list[0])
-    tensorshape = get_tensor_shape(tensor_list)
+    tensor_size = sys.getsizeof(tensor_list[0])
+    tensor_shape = get_tensor_shape(tensor_list)
     # 发送文件头信息
     dict = {
         'filename': filename,
-        'filesize': tensorsize,
+        'filesize': tensor_size,
         'imageshape':image_shape.tolist(),
-        'tensorshape':tensorshape,
+        'tensorshape':tensor_shape,
         'starttime':time.time(),
         'edgetime':edge_infer_time,
     }
@@ -93,20 +89,22 @@ def send_tensor(conn, filename, model_prefix):
     conn.send(head_info_len)
     # 发送头部信息
     conn.send(head_info.encode('utf-8'))
+    
     # 利用memoryview封装发送tensor
     for index, tensor in enumerate(tensor_list):
         # 二进制信道翻转
-        # if tensor.dtype == "int8":
-        #     tensor = cn.reverse_int8(tensor=tensor)
-        # else:
-        #     tensor = cn.reverse_float32(tensor=tensor)
+        if tensor.dtype == "int8":
+            tensor = cn.reverse_int8(tensor=tensor)
+        else:
+            tensor = cn.reverse_float32(tensor=tensor)
+        
         view = memoryview(tensor).cast("B")
         while len(view):
             nsent = conn.send(view)
             view = view[nsent:]
         print("{} mid-tensor{} ({} KB).\t Shape: {}".
-            format(filename, index, round(tensorsize/1000,3), tensor.shape))
-    return filename,edge_infer_time,tensorsize
+            format(filename, index, round(tensor_size/1000,3), tensor.shape))
+    return filename,edge_infer_time,tensor_size
 
 def get_tensor_shape(tensor_list):
     shape_list = []
@@ -114,6 +112,5 @@ def get_tensor_shape(tensor_list):
         shape_list.append(tensor.shape)
     return shape_list
 
-if __name__ == '__main__':
-    edge_server = Thread(target=send_loop, args=("cloud", ))
+
     

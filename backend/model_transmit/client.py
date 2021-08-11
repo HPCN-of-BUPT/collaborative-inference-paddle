@@ -69,19 +69,23 @@ def recv_tensor(client, model_prefix):
     # 解析文件信息
     file_info = client.recv(head_len)
     file_info = json.loads(file_info.decode('utf-8'))
-    tensorsize,filename,tensorshape,imageshape,starttime,edgetime = file_info['filesize'],file_info['filename'],file_info['tensorshape'],file_info['imageshape'],file_info['starttime'],file_info['edgetime']
+    tensor_size,filename,tensor_shape,image_shape,start_time,edge_infer_time = \
+        file_info['filesize'],file_info['filename'],file_info['tensorshape'],file_info['imageshape'],file_info['starttime'],file_info['edgetime']
     
     # 使用memoryview接收tensor
     tensor_list = []
-    for i,shape in enumerate(tensorshape):
+    for i,shape in enumerate(tensor_shape):
         tensor = np.array(np.zeros(shape), dtype=core.NUMPY_TYPE)
         recv_into(tensor, client)
         tensor_list.append(tensor)
+    
+    # 传输时间
     end_time = time.time()
-    tensor_transmit_time = round(end_time - starttime)
+    tensor_transmit_time = round(end_time - start_time)
     # print("Tensor {} received correctly.\t Transmit time {}s".format(filename, tensor_transmit_time))
+    
     # 云端计算剩余网络层
-    results, cloud_infer_time = cloud_load_tensor_yolo(image_shape=np.array(imageshape, dtype=np.int32),tensor=tensor_list,model_path=model_prefix,img_dir=core.LOAD_DIR,img_name=filename)
+    results, cloud_infer_time = cloud_load_tensor_yolo(image_shape=np.array(image_shape, dtype=np.int32),tensor=tensor_list,model_path=model_prefix,img_dir=core.LOAD_DIR,img_name=filename)
     # print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     # print("Tensor {}\t Result:{}".format(filename, results))
 
@@ -95,9 +99,9 @@ def recv_tensor(client, model_prefix):
 
     # 记录信息
     infos = {'filename':filename,
-             'edgetime':edgetime,
+             'edgetime':edge_infer_time,
              'cloudtime':cloud_infer_time,
-             'transmitsize':tensorsize * len(tensor_list),
+             'transmitsize':tensor_size * len(tensor_list),
              'transmittime':tensor_transmit_time,
              'result':results}
     print("\nTransmit info of " + infos['filename'])
