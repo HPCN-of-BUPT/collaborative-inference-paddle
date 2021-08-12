@@ -43,12 +43,12 @@ Tips
 
 ### 云服务器
 <div align=center> 
-    <img src="./images/cloud_demo_od.png" width=600/>
+    <img src="./images/cloud_demo_od.png" width=900/>
 </div>
 
 ### 端设备
 <div align=center> 
-    <img src="./images/edge_demo_od.png" width=600/>
+    <img src="./images/edge_demo_od.png" width=900/>
 </div>
 
 <!-- ### 云服务器
