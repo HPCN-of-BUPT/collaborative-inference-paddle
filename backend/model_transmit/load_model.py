@@ -5,11 +5,8 @@ import cv2
 import random
 import paddle
 import paddle.vision.transforms as T
-import paddle.fluid as fluid
 from PIL import Image, ImageDraw, ImageFont
 import core
-# from model_deploy import *
-# from utility import print_arguments, parse_args
 
 labels_name = [ 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 
                 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 
@@ -22,6 +19,7 @@ labels_name = [ 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
                 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 
                 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 
                 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
+
 def read_image(img):
     origin = img
     if img.mode != 'RGB':
@@ -42,12 +40,10 @@ def read_image(img):
     img = img[np.newaxis, :]
     return origin, img, resized_img
 
-
 def resize_img(img, target_size):
     img = img.resize(target_size[1:], Image.BILINEAR)
 
     return img
-
 
 def image_preprocess(img):
     # print(img)
@@ -78,7 +74,7 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
     font = ImageFont.truetype("arial.ttf", size=max(round(max(img.size) / 40), 12))
 
     for box, label,score in zip(boxes, labels, scores):
-        if score >= thre:#thre
+        if score >= thre:
             c = random.randint(0,19)
             xmin, ymin, xmax, ymax = box[0], box[1], box[2], box[3]
             draw.rectangle((xmin, ymin, xmax, ymax), None, "#" + color[c], width=line_thickness)
@@ -113,7 +109,7 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     exe.run(startup_prog)
     [inference_program, feed_target_names, fetch_targets] = (
         paddle.static.load_inference_model(model_path, exe))
-        
+    
     outputs = exe.run(inference_program,
                       feed={feed_target_names[0]: tensor[0],
                             feed_target_names[1]: tensor[1],
@@ -129,7 +125,7 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     boxes = bboxes[:, 2:].astype('float32')
 
     img = cv2.imread(os.path.join(img_dir, img_name))
-    img = draw_bbox_image(img, boxes, labels, scores, labels_name,core.DRAW_THRESHOLD)
+    img = draw_bbox_image(img, boxes, labels, scores, labels_name, thre=core.DRAW_THRESHOLD)
     img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
     output_dir = core.SAVE_DIR + '/' + img_name
     #output_dir = os.path.join(core.SAVE_DIR , img_name)
@@ -146,11 +142,9 @@ def edge_load_model(path_prefix,img):
     exe = paddle.static.Executor(paddle.CPUPlace())
     exe.run(startup_prog)
 
-    # 保存预测模型
     [inference_program, feed_target_names, fetch_targets] = (
         paddle.static.load_inference_model(path_prefix, exe))
-    # tensor_img = np.array(np.random.random((1, 3, 32, 32)), dtype=np.float32)
-    # print(tensor_img)
+
     results = exe.run(inference_program,
               feed={feed_target_names[0]: image_preprocess(img)},
               fetch_list=fetch_targets)
@@ -164,8 +158,6 @@ def cloud_load_tensor(path_prefix, tensor):
 
     exe = paddle.static.Executor(paddle.CPUPlace())
     exe.run(startup_prog)
-
-    # 保存预测模型
 
     [inference_program, feed_target_names, fetch_targets] = (
         paddle.static.load_inference_model(path_prefix, exe))
@@ -186,8 +178,6 @@ if __name__ == "__main__":
     # result,cloud_infer_time = cloud_load_tensor(
     #     path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
     # print(result)
-    # args = parse_args()
-    # print_arguments(args)
     image_shape, tensor, edge_infer_time = edge_load_model_yolo(
             model_path="../data/send/model/split_pruned_client", 
             img_dir="../data/test",

@@ -47,8 +47,7 @@ def send_loop(type):
                 for filename in glob.glob(os.path.join(core.LOAD_DIR, "*.jpg")):
                     if filename not in image_dict:
                         image_dict.append(filename)
-                        #win系统和mac路径差别
-                        send_tensor(conn=conn,filename=filename.split("\\")[-1],model_prefix=core.EDGE_MODEL_DIR)
+                        send_tensor(conn=conn,filename=filename.split("/")[-1],model_prefix=core.EDGE_MODEL_DIR)
 
 
 def send_file(conn, filename):
@@ -94,10 +93,10 @@ def send_tensor(conn, filename, model_prefix):
     # 利用memoryview封装发送tensor
     for index, tensor in enumerate(tensor_list):
         # 二进制信道翻转
-        #if tensor.dtype == "int8":
-        #    tensor = cn.reverse_int8(tensor=tensor)
-        #else:
-        #    tensor = cn.reverse_float32(tensor=tensor)
+        if tensor.dtype == "int8":
+            tensor = cn.reverse_int8(tensor=tensor)
+        else:
+            tensor = cn.reverse_float32(tensor=tensor)
         
         view = memoryview(tensor).cast("B")
         while len(view):
