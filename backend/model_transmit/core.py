@@ -9,8 +9,8 @@ BUFFER_SIZE = 1024
 NUMPY_TYPE = np.float32
 ERROR_RATE = 0
 
-SAVE_DIR = "../data/output"
-LOAD_DIR = "../data/test"
+SAVE_DIR = "./data/output"
+LOAD_DIR = "./data/test"
 CLOUD_MODEL_DIR = "./data/send/server_infer_yolov3"
 EDGE_MODEL_DIR = "./data/receive/client_infer_yolov3"
 # TOTAL = 0

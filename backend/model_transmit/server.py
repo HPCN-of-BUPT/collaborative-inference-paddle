@@ -25,17 +25,17 @@ def send_loop(type):
                   format(core.CLOUD_HOST,core.CLOUD_SENTTO_EDGE,addr[0],addr[1]))
             while True:
                 # 发送pdmodel文件
-                for filename in glob.glob(r'../data/send/client_infer_*.pdmodel'):
+                for filename in glob.glob(r'./data/send/client_infer_*.pdmodel'):
                     if(filename not in model_dict):
                         model_dict.append(filename)
                         send_file(conn, filename, "model")
                 # 发送pdiparams文件
-                for filename in glob.glob(r'../data/send/client_infer_*.pdiparams'):
+                for filename in glob.glob(r'./data/send/client_infer_*.pdiparams'):
                     if(filename not in param_dict):
                         param_dict.append(filename)
                         send_file(conn, filename, "model")
                 # 发送测试图片
-                for filename in glob.glob(r'../data/test/*'):
+                for filename in glob.glob(r'./data/test/*'):
                     if(filename not in image_dict):
                         image_dict.append(filename)
                         send_file(conn, filename, "image")
