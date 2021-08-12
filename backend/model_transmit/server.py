@@ -25,7 +25,7 @@ def send_loop(type):
                   format(core.CLOUD_HOST,core.CLOUD_SENTTO_EDGE,addr[0],addr[1]))
             while True:
                 # 发送pdmodel文件
-                for filename in glob.glob(r'../data/send/client_infer_*.pdmodel'):
+                for filename in glob.glob(r'./data/send/client_infer_*.pdmodel'):
                     if(filename not in model_dict):
                         model_dict.append(filename)
                         send_file(conn, filename, "model")
