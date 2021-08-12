@@ -1,21 +1,16 @@
-import socket,os,sys
-import time
+import socket,os,sys,time,glob,json,struct
 
 import core
-import glob
-import json
-import struct
-from threading import Thread
 from load_model import edge_load_model_yolo
 import numpy as np
 import channal_noise as cn
-import core
-model_dict = []
-param_dict = []
-image_dict = []
+model_dict = [] # pdmodel发送记录
+param_dict = [] # pdiparams发送记录
+image_dict = [] # 发送/接收图片记录
 
 def send_loop(type):
     if type == 'cloud':
+        # 建立通信连接
         server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         server.bind((core.CLOUD_HOST, core.CLOUD_SENTTO_EDGE))
         server.listen(5)
@@ -41,6 +36,7 @@ def send_loop(type):
                         send_file(conn, filename, "image")
 
     if type == 'edge':
+        # 建立通信连接
         server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         server.bind((core.EDGE_HOST, core.EDGE_SENDTO_CLOUD))
         server.listen(5)
@@ -49,13 +45,13 @@ def send_loop(type):
             print("Edge Server(I) {} : {} has connected to Cloud client(others) {} : {}".
                   format(core.EDGE_HOST,core.EDGE_SENDTO_CLOUD,addr[0],addr[1]))
             while True:
+                # 轮训检测是否收到新的待检测图片
                 for filename in glob.glob(r'./data/test/*'):
                     if filename not in image_dict:
-                        print(filename)
                         image_dict.append(filename)
                         send_tensor(conn=conn,filename=filename.split("/")[-1],model_prefix=core.EDGE_MODEL_DIR)
 
-
+# 云端发送模型或图片
 def send_file(conn, filename, type):
     filesize = os.path.getsize(filename)
     dict = {
@@ -75,13 +71,15 @@ def send_file(conn, filename, type):
         conn.sendall(data)
     print("\nFile {} ({} MB) send finish.".format(filename, round(filesize/1000/1000,2)))
 
+# 边端发送中间特征
 def send_tensor(conn, filename, model_prefix):
+    # 计算得到中间特征
     image_shape, tensor_list, edge_infer_time = edge_load_model_yolo(model_path=model_prefix, img_dir=core.LOAD_DIR, img_name=filename)
     print("\nEdge cost {}s infer {} ".format(edge_infer_time, filename))
 
     tensor_size = sys.getsizeof(tensor_list[0])
     tensor_shape = get_tensor_shape(tensor_list)
-    # 发送文件头信息
+    # 文件头内容
     dict = {
         'filename': filename,
         'filesize': tensor_size,

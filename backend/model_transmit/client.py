@@ -1,17 +1,13 @@
-import json, glob
-import socket
-import struct
-
-import core
-import json
-import time
+import json, socket, time, struct
 import numpy as np
+import core
 from processbar import process_bar
 from load_model import cloud_load_tensor_yolo
 
 def receive_loop(type):
     flag = -1
     if type == "cloud":
+        # 建立通信连接
         while flag != 0:
             client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             flag = client.connect_ex((core.EDGE_HOST, core.EDGE_SENDTO_CLOUD))
@@ -19,8 +15,10 @@ def receive_loop(type):
                 print("Edge refused to connect, please start edge process!")
             time.sleep(2)
         while True:
+            # 云端接收中间特征并计算，返回给前端进行展示
             infos = recv_tensor(client=client, model_prefix=core.CLOUD_MODEL_DIR)                  
     elif type == "edge":
+        # 建立通信连接
         while flag != 0:
             client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             flag = client.connect_ex((core.CLOUD_HOST, core.CLOUD_SENTTO_EDGE))
@@ -28,8 +26,10 @@ def receive_loop(type):
                 print("Cloud refused to connect, please start cloud process!")
             time.sleep(2)
         while True:
-            recv_file(client)
+            # 边端接收切割模型或待检测图片
+            filename = recv_file(client)
 
+# 边端接收模型文件或待检测图片
 def recv_file(client):
     # 解析头部长度
     head_struct = client.recv(4)
@@ -43,8 +43,9 @@ def recv_file(client):
     # 接收文件
     recv_len = 0
     start_time = time.time()
+    # 根据类型判断存储路径
     save_dir = filename.replace("send", "receive") if type == "model" else filename
-
+    # 存储文件
     with open(save_dir, 'wb') as f:
         while recv_len < filesize:
             precent = recv_len / filesize
@@ -62,7 +63,7 @@ def recv_file(client):
             filesize_mb = filesize / 1000 /1000
         print("\n{}({}MB) received correctly! Time: {}s\t Speed: {} MB/s".
               format(save_dir.split("/")[-1], round(filesize_mb,2), round(during_time,2), round(filesize_mb / during_time, 2)))
-
+    return filename
 def recv_tensor(client, model_prefix):
     # 解析头部长度
     head_struct = client.recv(4)

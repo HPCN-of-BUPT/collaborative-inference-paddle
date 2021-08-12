@@ -23,10 +23,10 @@ if __name__ == '__main__':
     core.EDGE_SENDTO_CLOUD = args.edge_port if args.edge_port else core.EDGE_SENDTO_CLOUD
     core.ERROR_RATE = args.channal_error if args.channal_error else core.ERROR_RATE
 
-
+    # 边端发送中间特征线程
     edge_server_thread = Thread(target=send_loop, args=("edge", ),name="edge_server_thread")
+    # 边端接收切割模型/待检测图片线程
     edge_client_thread = Thread(target=receive_loop, args=("edge", ),name="edge_client_thread")
-
     edge_client_thread.start()
     # time.sleep(10)
     edge_server_thread.start()
