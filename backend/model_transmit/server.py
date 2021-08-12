@@ -30,12 +30,12 @@ def send_loop(type):
                         model_dict.append(filename)
                         send_file(conn, filename, "model")
                 # 发送pdiparams文件
-                for filename in glob.glob(r'../data/send/client_infer_*.pdiparams'):
+                for filename in glob.glob(r'./data/send/client_infer_*.pdiparams'):
                     if(filename not in param_dict):
                         param_dict.append(filename)
                         send_file(conn, filename, "model")
                 # 发送测试图片
-                for filename in glob.glob(r'../data/test/*'):
+                for filename in glob.glob(r'./data/test/*'):
                     if(filename not in image_dict):
                         image_dict.append(filename)
                         send_file(conn, filename, "image")
@@ -49,8 +49,9 @@ def send_loop(type):
             print("Edge Server(I) {} : {} has connected to Cloud client(others) {} : {}".
                   format(core.EDGE_HOST,core.EDGE_SENDTO_CLOUD,addr[0],addr[1]))
             while True:
-                for filename in glob.glob(os.path.join(core.LOAD_DIR, "*.jpg")):
+                for filename in glob.glob(r'./data/test/*'):
                     if filename not in image_dict:
+                        print(filename)
                         image_dict.append(filename)
                         send_tensor(conn=conn,filename=filename.split("/")[-1],model_prefix=core.EDGE_MODEL_DIR)
 

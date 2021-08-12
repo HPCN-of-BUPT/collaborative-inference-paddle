@@ -27,5 +27,6 @@ if __name__ == '__main__':
     edge_server_thread = Thread(target=send_loop, args=("edge", ),name="edge_server_thread")
     edge_client_thread = Thread(target=receive_loop, args=("edge", ),name="edge_client_thread")
 
-    edge_server_thread.start()
     edge_client_thread.start()
+    # time.sleep(10)
+    edge_server_thread.start()
