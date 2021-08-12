@@ -49,8 +49,9 @@ def send_loop(type):
             print("Edge Server(I) {} : {} has connected to Cloud client(others) {} : {}".
                   format(core.EDGE_HOST,core.EDGE_SENDTO_CLOUD,addr[0],addr[1]))
             while True:
-                for filename in glob.glob(os.path.join(core.LOAD_DIR, "*.jpg")):
+                for filename in glob.glob(r'./data/test/*'):
                     if filename not in image_dict:
+                        print(filename)
                         image_dict.append(filename)
                         send_tensor(conn=conn,filename=filename.split("/")[-1],model_prefix=core.EDGE_MODEL_DIR)
 

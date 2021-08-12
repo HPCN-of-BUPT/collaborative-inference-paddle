@@ -87,6 +87,8 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
     return img
 
 def edge_load_model_yolo(model_path, img_dir, img_name):
+    print(img_dir)
+    print(img_name)
     paddle.enable_static()
     startup_prog = paddle.static.default_startup_program()
     start_time = time.time()
