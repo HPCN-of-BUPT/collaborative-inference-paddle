@@ -8,6 +8,7 @@ import time
 import numpy as np
 from processbar import process_bar
 from load_model import cloud_load_tensor_yolo
+from db_save import add_system_result
 
 def receive_loop(type):
     flag = -1
@@ -104,7 +105,9 @@ def recv_tensor(client, model_prefix):
              'transmitsize':tensor_size * len(tensor_list),
              'transmittime':tensor_transmit_time,
              'result':results}
+
     print("\nTransmit info of " + infos['filename'])
+    add_system_result(filename=filename,edgetime=edge_infer_time,cloudtime=cloud_infer_time,transmitsize=tensor_size * len(tensor_list),transmittime=tensor_transmit_time)
     print(infos)  
     return infos
 

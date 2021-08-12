@@ -74,7 +74,8 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
     img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     draw = ImageDraw.Draw(img)
     line_thickness = max(int(min(img.size) / 200), 2)
-    font = ImageFont.truetype("Arial.ttf", size=max(round(max(img.size) / 40), 12))
+    #win:arial.ttf
+    font = ImageFont.truetype("arial.ttf", size=max(round(max(img.size) / 40), 12))
 
     for box, label,score in zip(boxes, labels, scores):
         if score >= thre:#thre
@@ -130,7 +131,8 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     img = cv2.imread(os.path.join(img_dir, img_name))
     img = draw_bbox_image(img, boxes, labels, scores, labels_name,core.DRAW_THRESHOLD)
     img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
-    output_dir = os.path.join(core.SAVE_DIR , img_name)
+    output_dir = core.SAVE_DIR + '/' + img_name
+    #output_dir = os.path.join(core.SAVE_DIR , img_name)
     cv2.imwrite(output_dir, img)
 
     end_time = time.time()
