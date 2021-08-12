@@ -39,11 +39,13 @@ def recv_file(client):
     file_info = json.loads(file_info.decode('utf-8'))
     filesize = file_info['filesize']
     filename = file_info['filename']
+    type = file_info['type']
     # 接收文件
     recv_len = 0
     start_time = time.time()
-    filename = filename.replace("send", "receive")
-    with open(filename, 'wb') as f:
+    save_dir = filename.replace("send", "receive") if type == "model" else filename
+
+    with open(save_dir, 'wb') as f:
         while recv_len < filesize:
             precent = recv_len / filesize
             process_bar(precent)
@@ -59,7 +61,7 @@ def recv_file(client):
             during_time = end_time - start_time
             filesize_mb = filesize / 1000 /1000
         print("\n{}({}MB) received correctly! Time: {}s\t Speed: {} MB/s".
-              format(filename.split("/")[-1], round(filesize_mb,2), round(during_time,2), round(filesize_mb / during_time, 2)))
+              format(save_dir.split("/")[-1], round(filesize_mb,2), round(during_time,2), round(filesize_mb / during_time, 2)))
 
 def recv_tensor(client, model_prefix):
     # 解析头部长度

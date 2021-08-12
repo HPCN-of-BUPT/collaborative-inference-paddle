@@ -129,4 +129,6 @@ dmypy.json
 .pyre/
 
 backend/data
-
+backend/model_transmit/data
+.idea
+.DS_Store

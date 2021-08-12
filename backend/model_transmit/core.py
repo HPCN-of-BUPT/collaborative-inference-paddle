@@ -11,8 +11,8 @@ ERROR_RATE = 0
 
 SAVE_DIR = "../data/output"
 LOAD_DIR = "../data/test"
-CLOUD_MODEL_DIR = "../data/send/split_pruned_server"
-EDGE_MODEL_DIR = "../data/receive/split_pruned_client"
+CLOUD_MODEL_DIR = "../data/send/server_infer_yolov3"
+EDGE_MODEL_DIR = "../data/receive/client_infer_yolov3"
 # TOTAL = 0
 # CORRECT = 0
 
