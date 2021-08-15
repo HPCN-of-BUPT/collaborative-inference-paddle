@@ -58,7 +58,7 @@ def image_preprocess(img):
 def image_preprocess_yolo(img):
     image = cv2.imread(img)
     image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    origin, tensor_img, resized_img = read_image(image)
+    origin, tensor_img, _ = read_image(image)
     input_w, input_h = origin.size[0], origin.size[1]
     image_shape = np.array([input_h, input_w], dtype='int32')
     return image_shape, tensor_img
