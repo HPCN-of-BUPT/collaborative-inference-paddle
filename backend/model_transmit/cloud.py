@@ -13,13 +13,16 @@ def parse_args():
     args = parser.parse_args()
     return args
 if __name__ == '__main__':
+    # 测试配置
     args = parse_args()
     core.CLOUD_HOST = args.cloud_host if args.cloud_host else core.CLOUD_HOST
     core.EDGE_HOST = args.edge_host if args.edge_host else core.EDGE_HOST
     core.CLOUD_SENTTO_EDGE = args.cloud_port if args.cloud_port else core.CLOUD_SENTTO_EDGE
     core.EDGE_SENDTO_CLOUD = args.edge_port if args.edge_port else core.EDGE_SENDTO_CLOUD
    
+    # 云端发送文件线程
     cloud_server_thread = Thread(target=send_loop, args=("cloud", ),name="cloud_server_thread")
+    # 云端接受中间特征线程
     cloud_client_thread = Thread(target=receive_loop, args=("cloud", ),name="cloud_client_thread")
     cloud_server_thread.start()
     cloud_client_thread.start()
