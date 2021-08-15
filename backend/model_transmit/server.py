@@ -25,36 +25,45 @@ def send_loop(type):
                   format(core.CLOUD_HOST,core.CLOUD_SENTTO_EDGE,addr[0],addr[1]))
             while True:
                 # 发送pdmodel文件
-                for filename in glob.glob(r'../data/send/model/client_infer_*.pdmodel'):
+                for filename in glob.glob(r'./data/send/client_infer_*.pdmodel'):
                     if(filename not in model_dict):
                         model_dict.append(filename)
-                        # send_file(conn, filename)
+                        send_file(conn, filename, "model")
                 # 发送pdiparams文件
-                for filename in glob.glob(r'../data/send/model/client_infer_*.pdiparams'):
+                for filename in glob.glob(r'./data/send/client_infer_*.pdiparams'):
                     if(filename not in param_dict):
                         param_dict.append(filename)
-                        # send_file(conn, filename)
+                        send_file(conn, filename, "model")
+                # 发送待检测图片
+                for filename in glob.glob(r'./data/test/*'):
+                    if(filename not in image_dict):
+                        image_dict.append(filename)
+                        send_file(conn, filename)
 
     if type == 'edge':
         server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         server.bind((core.EDGE_HOST, core.EDGE_SENDTO_CLOUD))
         server.listen(5)
         while True:
+            # 建立通信连接
             conn, addr = server.accept()
             print("Edge Server(I) {} : {} has connected to Cloud client(others) {} : {}".
                   format(core.EDGE_HOST,core.EDGE_SENDTO_CLOUD,addr[0],addr[1]))
             while True:
+            # 发送中间tensor
                 for filename in glob.glob(os.path.join(core.LOAD_DIR, "*.jpg")):
                     if filename not in image_dict:
                         image_dict.append(filename)
+                        # 边端计算得到中间tensor
                         send_tensor(conn=conn,filename=filename.split("/")[-1],model_prefix=core.EDGE_MODEL_DIR)
 
 
-def send_file(conn, filename):
+def send_file(conn, filename, filetype):
     filesize = os.path.getsize(filename)
     dict = {
         'filename': filename,
         'filesize': filesize,
+        'type':filetype,
     }
     head_info = json.dumps(dict)
     head_info_len = struct.pack('i', len(head_info))
@@ -69,6 +78,7 @@ def send_file(conn, filename):
     print("\nFile {} ({} MB) send finish.".format(filename, round(filesize/1000/1000,2)))
 
 def send_tensor(conn, filename, model_prefix):
+    # 边端计算得到中间tensor
     image_shape, tensor_list, edge_infer_time = edge_load_model_yolo(model_path=model_prefix, img_dir=core.LOAD_DIR, img_name=filename)
     print("\nEdge cost {}s infer {} ".format(edge_infer_time, filename))
 
@@ -92,11 +102,11 @@ def send_tensor(conn, filename, model_prefix):
     
     # 利用memoryview封装发送tensor
     for index, tensor in enumerate(tensor_list):
-        # 二进制信道翻转
-        if tensor.dtype == "int8":
-            tensor = cn.reverse_int8(tensor=tensor)
-        else:
-            tensor = cn.reverse_float32(tensor=tensor)
+        # # 二进制信道翻转
+        # if tensor.dtype == "int8":
+        #     tensor = cn.reverse_int8(tensor=tensor)
+        # else:
+        #     tensor = cn.reverse_float32(tensor=tensor)
         
         view = memoryview(tensor).cast("B")
         while len(view):
