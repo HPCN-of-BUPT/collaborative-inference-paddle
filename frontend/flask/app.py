@@ -1,6 +1,7 @@
+import os
+import base64
 from flask import *
 from flask_cors import *
-from test_model import infer
 from db_op import *
 from flask_sqlalchemy import SQLAlchemy
 
@@ -49,13 +50,28 @@ def cut():
 @app.route('/image_upload',methods=['POST'])
 def image_upload():
     file = request.files.get('file')
-    #directory = 'static/images/'
-    directory = '../../backend/data/test/'
-    file_path = directory + file.filename
+    input_dir = '../../backend/data/test/'
+    filename = file.filename
+    file_path = input_dir + filename
+    print(file_path)
     file.save(file_path)
-    result = infer(file_path)
-    print(result)
-    return jsonify({'result':str(result)})
+    flag = True
+    output_dir = '../../backend/data/output'
+    while flag:
+        for file in os.listdir(output_dir):
+            if file == filename:
+                flag = False
+    f = open(os.path.join(output_dir,filename),'rb')
+    base64_str = base64.b64encode(f.read())
+    name, edgetime, cloudtime, transmitsize, transmittime = find_result(filename=filename)
+    msg = {'filename':name,
+             'edgetime':edgetime,
+             'cloudtime':cloudtime,
+             'transmitsize':transmitsize,
+             'transmittime':transmittime,
+             'img_base64':str(base64_str,'utf-8')}
+    #print(msg2)
+    return jsonify({'msg':msg})
 
 if __name__ == '__main__':
     app.run()

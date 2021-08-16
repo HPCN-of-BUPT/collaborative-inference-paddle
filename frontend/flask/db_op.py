@@ -1,4 +1,4 @@
-from db_model import Model,Restriction,Submodel,ModelDivide
+from db_model import Model,Restriction,Submodel,ModelDivide,System
 from app import db
 
 def add_restriction(data):
@@ -38,3 +38,7 @@ def add_systemtest():
     db.session.commit()
 
     return edge_model,cloud_model,edge_cloud_model
+
+def find_result(filename):
+    system = System.query.filter(System.filename == filename).order_by(System.id.desc()).first()
+    return system.filename,system.edge_time,system.cloud_time,system.transmit_size,system.transmit_time

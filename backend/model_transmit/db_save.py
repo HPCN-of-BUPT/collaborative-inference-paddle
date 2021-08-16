@@ -9,37 +9,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
-class Model(db.Model):
-    #表名
-    __tablename__ = 'model'
-    #列对象
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(255))
-
-class Restriction(db.Model):
-    __tablename__ = 'restriction'
-    id = db.Column(db.Integer, primary_key=True)
-    delay = db.Column(db.Float)
-    bandwidth = db.Column(db.Float)
-    cloud_computation = db.Column(db.Float)
-    edge_computation = db.Column(db.Float)
-
-class Submodel(db.Model):
-    __tablename__ = 'submodel'
-    id = db.Column(db.Integer, primary_key=True)
-    flops = db.Column(db.Float)
-    params = db.Column(db.Float)
-    type = db.Column(db.Integer)#模型类型 0：云-边模型  1：云模型  2：边模型
-    model_divide_id = db.Column(db.Integer)
-
-
-class ModelDivide(db.Model):
-    __tablename__ = 'model_divide'
-    id = db.Column(db.Integer, primary_key=True)
-    model_id = db.Column(db.Integer)
-    restric_id = db.Column(db.Integer)
-
-
 class System(db.Model):
     __tablename__ = 'system'
     id = db.Column(db.Integer, primary_key=True)
@@ -56,8 +25,9 @@ class System(db.Model):
     throughput = db.Column(db.Float)
     model_divide_id = db.Column(db.Integer)
 
-if __name__ == '__main__':
-    db.drop_all()
-    db.create_all()
 
-
+def add_system_result(filename,edgetime,cloudtime,transmitsize,transmittime):
+    system = System(filename=filename,edge_time=edgetime,cloud_time=cloudtime,transmit_size=transmitsize,transmit_time=transmittime)
+    db.session.add(system)
+    db.session.commit()
+    return system.id
