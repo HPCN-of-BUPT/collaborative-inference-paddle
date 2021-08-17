@@ -38,7 +38,7 @@ def send_loop(type):
                 for filename in glob.glob(r'./data/test/*'):
                     if(filename not in image_dict):
                         image_dict.append(filename)
-                        send_file(conn, filename)
+                        send_file(conn, filename, "image")
 
     if type == 'edge':
         server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -82,12 +82,12 @@ def send_tensor(conn, filename, model_prefix):
     image_shape, tensor_list, edge_infer_time = edge_load_model_yolo(model_path=model_prefix, img_dir=core.LOAD_DIR, img_name=filename)
     print("\nEdge cost {}s infer {} ".format(edge_infer_time, filename))
 
-    tensor_size = sys.getsizeof(tensor_list[0])
+    # tensor_size = sys.getsizeof(tensor_list[0])
     tensor_shape = get_tensor_shape(tensor_list)
     # 发送文件头信息
     dict = {
         'filename': filename,
-        'filesize': tensor_size,
+        # 'filesize': tensor_size,
         'imageshape':image_shape.tolist(),
         'tensorshape':tensor_shape,
         'starttime':time.time(),
@@ -107,8 +107,8 @@ def send_tensor(conn, filename, model_prefix):
         #     tensor = cn.reverse_int8(tensor=tensor)
         # else:
         #     tensor = cn.reverse_float32(tensor=tensor)
-        
         view = memoryview(tensor).cast("B")
+        tensor_size = sys.getsizeof(view)
         while len(view):
             nsent = conn.send(view)
             view = view[nsent:]

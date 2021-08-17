@@ -26,8 +26,12 @@ class System(db.Model):
     model_divide_id = db.Column(db.Integer)
 
 
-def add_system_result(filename,edgetime,cloudtime,transmitsize,transmittime):
-    system = System(filename=filename,edge_time=edgetime,cloud_time=cloudtime,transmit_size=transmitsize,transmit_time=transmittime)
+def add_system_result(infos):
+    system = System(filename=infos['filename'],
+                    edge_time=infos['edgetime'],
+                    cloud_time=infos['cloudtime'],
+                    transmit_size=infos['transmitsize'],
+                    transmit_time=infos['transmittime'])
     db.session.add(system)
     db.session.commit()
     return system.id

@@ -1,9 +1,9 @@
-import json, socket, time, struct
+import json, socket, time, struct, sys
 import numpy as np
 import core
 from processbar import process_bar
 from load_model import cloud_load_tensor_yolo
-from db_save import add_system_result
+# from db_save import add_system_result
 
 def receive_loop(type):
     flag = -1
@@ -73,15 +73,17 @@ def recv_tensor(client, model_prefix):
     # 解析文件信息
     file_info = client.recv(head_len)
     file_info = json.loads(file_info.decode('utf-8'))
-    tensor_size,filename,tensor_shape,image_shape,start_time,edge_infer_time = \
-        file_info['filesize'],file_info['filename'],file_info['tensorshape'],file_info['imageshape'],file_info['starttime'],file_info['edgetime']
+    filename,tensor_shape,image_shape,start_time,edge_infer_time = \
+        file_info['filename'],file_info['tensorshape'],file_info['imageshape'],file_info['starttime'],file_info['edgetime']
     
     # 使用memoryview接收tensor
     tensor_list = []
+    tensor_size = 0
     for i,shape in enumerate(tensor_shape):
         tensor = np.array(np.zeros(shape), dtype=core.NUMPY_TYPE)
-        recv_into(tensor, client)
+        length = recv_into(tensor, client)
         tensor_list.append(tensor)
+        tensor_size += length
     
     # 传输时间
     end_time = time.time()
@@ -105,17 +107,19 @@ def recv_tensor(client, model_prefix):
     infos = {'filename':filename,
              'edgetime':edge_infer_time,
              'cloudtime':cloud_infer_time,
-             'transmitsize':tensor_size * len(tensor_list),
+             'transmitsize':tensor_size,
              'transmittime':tensor_transmit_time,
              'result':results}
 
     print("\nTransmit info of " + infos['filename'])
-    add_system_result(filename=filename,edgetime=edge_infer_time,cloudtime=cloud_infer_time,transmitsize=tensor_size * len(tensor_list),transmittime=tensor_transmit_time)
+    # add_system_result(infos)
     print(infos)  
     return infos
 
 def recv_into(arr, source):
     view = memoryview(arr).cast('B')
+    length = sys.getsizeof(view)
     while len(view):
         nrecv = source.recv_into(view)
         view = view[nrecv:]
+    return length
