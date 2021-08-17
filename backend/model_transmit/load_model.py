@@ -71,7 +71,7 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
     draw = ImageDraw.Draw(img)
     line_thickness = max(int(min(img.size) / 200), 2)
     #win:arial.ttf
-    font = ImageFont.truetype("arial.ttf", size=max(round(max(img.size) / 40), 12))
+    font = ImageFont.truetype("Arial.ttf", size=max(round(max(img.size) / 40), 12))
 
     for box, label,score in zip(boxes, labels, scores):
         if score >= thre:
@@ -109,14 +109,16 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     exe.run(startup_prog)
     [inference_program, feed_target_names, fetch_targets] = (
         paddle.static.load_inference_model(model_path, exe))
+    # 自适应输入tensor
+    feed = {}
+    for index, t in enumerate(tensor):
+        feed[feed_target_names[index]] = t
+    feed[feed_target_names[-1]] = image_shape[np.newaxis, :]
     
     outputs = exe.run(inference_program,
-                      feed={feed_target_names[0]: tensor[0],
-                            feed_target_names[1]: tensor[1],
-                            feed_target_names[2]: image_shape[np.newaxis, :]},
+                      feed=feed,
               fetch_list=fetch_targets,
               return_numpy=False)
-    
     bboxes = np.array(outputs[0])
     if bboxes.shape[1] != 6:
         print("No object found in {}".format(img_name))
@@ -127,8 +129,8 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     img = cv2.imread(os.path.join(img_dir, img_name))
     img = draw_bbox_image(img, boxes, labels, scores, labels_name, thre=core.DRAW_THRESHOLD)
     img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
-    output_dir = core.SAVE_DIR + '/' + img_name
-    #output_dir = os.path.join(core.SAVE_DIR , img_name)
+    # output_dir = core.SAVE_DIR + '/' + img_name
+    output_dir = os.path.join(core.SAVE_DIR , img_name)
     cv2.imwrite(output_dir, img)
 
     end_time = time.time()
@@ -179,15 +181,15 @@ if __name__ == "__main__":
     #     path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
     # print(result)
     image_shape, tensor, edge_infer_time = edge_load_model_yolo(
-            model_path="../data/send/model/split_pruned_client", 
-            img_dir="../data/test",
+            model_path="./data/send/client_infer_yolov3", 
+            img_dir="./data/test",
             img_name = "kite.jpg")
     
     output, cloud_infer_time  = cloud_load_tensor_yolo(
             image_shape=image_shape, 
             tensor=tensor, 
-            model_path="../data/send/model/split_pruned_server",
-            img_dir="../data/test",
+            model_path="./data/send/server_infer_yolov3",
+            img_dir="./data/test",
             img_name="kite.jpg")
     print("Result saved in " + output)
 
