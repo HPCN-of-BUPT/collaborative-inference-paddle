@@ -1,6 +1,8 @@
 from db_model import Model,Restriction,Submodel,ModelDivide,System
 from app import db
-
+import pymysql
+pymysql.version_info = (1, 4, 13, "final", 0)
+pymysql.install_as_MySQLdb()
 def add_restriction(data):
     #print(data['delay'])
     delay = float(data['delay'])

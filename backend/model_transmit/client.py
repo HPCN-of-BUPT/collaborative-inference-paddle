@@ -3,7 +3,7 @@ import numpy as np
 import core
 from processbar import process_bar
 from load_model import cloud_load_tensor_yolo
-# from db_save import add_system_result
+from db_save import add_system_result
 
 def receive_loop(type):
     flag = -1
@@ -112,7 +112,7 @@ def recv_tensor(client, model_prefix):
              'result':results}
 
     print("\nTransmit info of " + infos['filename'])
-    # add_system_result(infos)
+    add_system_result(infos)
     print(infos)  
     return infos
 
