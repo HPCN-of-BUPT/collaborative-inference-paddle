@@ -1,21 +1,17 @@
-import sys
-sys.path.append("..")
-from app import db
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+import pymysql
+from config import URL
+pymysql.version_info = (1, 4, 13, "final", 0)
+pymysql.install_as_MySQLdb()
 
-# from flask import Flask
-# from flask_sqlalchemy import SQLAlchemy
-# import pymysql
-# from db_utils.config import URL
-# pymysql.version_info = (1, 4, 13, "final", 0)
-# pymysql.install_as_MySQLdb()
-#
-# app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = URL
-# app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-# # 查询时会显示原始SQL语句
-# app.config['SQLALCHEMY_ECHO'] = True
-# db = SQLAlchemy(app)
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = URL
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+# 查询时会显示原始SQL语句
+app.config['SQLALCHEMY_ECHO'] = True
+db = SQLAlchemy(app)
 
 class Model(db.Model):
     #表名
@@ -63,5 +59,8 @@ class System(db.Model):
     throughput = db.Column(db.Float)
     model_divide_id = db.Column(db.Integer)
 
+if __name__ == '__main__':
+    db.drop_all()
+    db.create_all()
 
 
