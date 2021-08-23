@@ -7,27 +7,18 @@ from PIL import Image, ImageDraw, ImageFont
 from flask import *
 from flask_cors import *
 from flask_sqlalchemy import SQLAlchemy
-<<<<<<< HEAD
 import pymysql
 pymysql.version_info = (1, 4, 13, "final", 0)
 pymysql.install_as_MySQLdb()
 
 from db_utils import db_op
 from db_utils import db_save
+from db_utils import config
 import core
 
-=======
-from db_utils.db_predict import *
-from db_utils.db_model import *
-import pymysql
-from db_utils.config import URL
-pymysql.version_info = (1, 4, 13, "final", 0)
-pymysql.install_as_MySQLdb()
-
->>>>>>> 2c6b68993f6506d1bafefeb2abe79fe700b1d08b
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = URL
+app.config['SQLALCHEMY_DATABASE_URI'] = config.URL
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # 查询时会显示原始SQL语句
@@ -46,19 +37,7 @@ def after_request(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     return response
 
-<<<<<<< HEAD
 #模型切割请求
-=======
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
-
-@app.route('/hello')
-def hello():
-    return 'Hello!'
-
-#模型切割请求（前端）
->>>>>>> 2c6b68993f6506d1bafefeb2abe79fe700b1d08b
 @app.route('/cut',methods=['POST'])
 def cut():
     print(request.data)
@@ -82,7 +61,6 @@ def image_upload():
     file_path = input_dir + file.filename
     print(file_path)
     file.save(file_path)
-<<<<<<< HEAD
     flag = True
     output_dir = '../../backend/data/output'
     while flag:
@@ -148,57 +126,6 @@ def receive_result():
     results = request.args
     # flag = 0, success; flag = 1, no object detected
     flag = draw_box(results['result'], results['filename'])
-=======
-    #ID = add_edge_status(db)
-    #print('id ',ID)
-    status.IMAGE_STATUS = 1
-    return jsonify({'msg':'success'})
-
-#检测边端是否已接收图片（前端）  ****2
-@app.route('/edge',methods=['POST','GET'])
-def edge():
-    #检测是否上传新的图片
-    if status.EDGE_STATUS == 0:
-        return jsonify({'msg':'false'})
-    else:
-        return jsonify({'msg':'true'})
-
-#请求检测结果（前端）   ***3
-@app.route('/get_result',methods=['POST','GET'])
-def getResult():
-    if status.EDGE_STATUS == 0:
-        return jsonify({'msg':'false'})
-    else:
-        status.IMAGE_STATUS = 0
-        status.EDGE_STATUS = 0
-        status.TEST_STATUS = 0
-        results = get_result(db,System,status.ID)
-        return jsonify({'msg':'true','data':results})
-
-
-#请求检测图片（后端）
-@app.route('/getImage',methods=['POST','GET'])
-def getImage():
-    #检测是否上传新的图片
-    if status.IMAGE_STATUS == 0:
-        return 'false'
-    else:
-        #base64位图像编码返回
-        input_dir = './data/input/'
-        filename = 'predict.jpg'
-        f = open(os.path.join(input_dir, filename), 'rb')
-        base64_str = base64.b64encode(f.read())
-        status.EDGE_STATUS = 1
-        return jsonify({'data': str(base64_str, 'utf-8')})
-
-
-#发送目标检测结果（后端）
-@app.route('/receive_result',methods=['POST','GET'])
-def receive_result():
-    print(request.args)
-    status.ID = add_result(db, System, request.args)
-    status.TEST_STATUS = 1
->>>>>>> 2c6b68993f6506d1bafefeb2abe79fe700b1d08b
     return "success"
 
 def draw_box(bboxes,filename):
