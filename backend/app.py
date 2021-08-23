@@ -3,10 +3,6 @@ import base64
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from multiprocessing import Process
-from gevent import pywsgi
-from gevent import monkey
-import logging as rel_log
 
 from flask import *
 from flask_cors import *
@@ -19,7 +15,6 @@ from db_utils import db_op
 from db_utils import db_save
 import core
 
-monkey.patch_all()
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:gj6143585@127.0.0.1:3306/paddle'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
@@ -30,8 +25,6 @@ db = SQLAlchemy(app)
 
 CORS(app, supports_credentials=True)
 
-werkzeug_logger = rel_log.getLogger('werkzeug')
-werkzeug_logger.setLevel(rel_log.ERROR)
 
 @app.after_request
 def after_request(response):
@@ -161,14 +154,5 @@ def draw_box(bboxes,filename):
     cv2.imwrite(output_dir, img)
     return 0
 
-server = pywsgi.WSGIServer(('127.0.0.1', 5000), app)
-server.start()
-
-def serve_forever():
-    server.start_accepting()
-    server._stop_event.wait()
 if __name__ == '__main__':
-    for i in range(3):
-        p = Process(target=serve_forever)
-        p.start()
-        p.join()
+    app.run()
