@@ -1,4 +1,4 @@
-import os
+import os, json
 import numpy as np
 import time
 import cv2
@@ -7,18 +7,6 @@ import paddle
 import paddle.vision.transforms as T
 from PIL import Image, ImageDraw, ImageFont
 import core
-
-labels_name = [ 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 
-                'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 
-                'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 
-                'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 
-                'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 
-                'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 
-                'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 
-                'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 
-                'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 
-                'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 
-                'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
 
 def read_image(img):
     origin = img
@@ -70,7 +58,7 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
     img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     draw = ImageDraw.Draw(img)
     line_thickness = max(int(min(img.size) / 200), 2)
-    #win:arial.ttf
+    # win:arial.ttf
     font = ImageFont.truetype("Arial.ttf", size=max(round(max(img.size) / 40), 12))
 
     for box, label,score in zip(boxes, labels, scores):
@@ -85,11 +73,9 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
 
 def edge_load_model_yolo(model_path, img_dir, img_name):
     paddle.enable_static()
-    startup_prog = paddle.static.default_startup_program()
     start_time = time.time()
 
     exe = paddle.static.Executor(paddle.CPUPlace())
-    exe.run(startup_prog)
     [inference_program, feed_target_names, fetch_targets] = (
         paddle.static.load_inference_model(model_path, exe))
     image_shape, tensor_image = image_preprocess_yolo(os.path.join(img_dir, img_name))
@@ -102,11 +88,9 @@ def edge_load_model_yolo(model_path, img_dir, img_name):
 
 def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     paddle.enable_static()
-    startup_prog = paddle.static.default_startup_program()
     start_time = time.time()
 
     exe = paddle.static.Executor(paddle.CPUPlace())
-    exe.run(startup_prog)
     [inference_program, feed_target_names, fetch_targets] = (
         paddle.static.load_inference_model(model_path, exe))
     # 自适应输入tensor
@@ -120,29 +104,32 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
               fetch_list=fetch_targets,
               return_numpy=False)
     bboxes = np.array(outputs[0])
-    if bboxes.shape[1] != 6:
-        print("No object found in {}".format(img_name))
-    labels = bboxes[:, 0].astype('int32')
-    scores = bboxes[:, 1].astype('float32')
-    boxes = bboxes[:, 2:].astype('float32')
-
-    img = cv2.imread(os.path.join(img_dir, img_name))
-    img = draw_bbox_image(img, boxes, labels, scores, labels_name, thre=core.DRAW_THRESHOLD)
-    img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
-    # output_dir = core.SAVE_DIR + '/' + img_name
-    output_dir = os.path.join(core.SAVE_DIR , img_name)
-    cv2.imwrite(output_dir, img)
+    # 仅传输标注框
+    result = []
+    for index, box in enumerate(bboxes):
+        if box[1].astype('float32') >= core.DRAW_THRESHOLD:
+            result.append(box.tolist())
+    result = str(result)
+    # 本地标框
+    # if bboxes.shape[1] != 6:
+    #     print("No object found in {}".format(img_name))
+    # labels = bboxes[:, 0].astype('int32')
+    # scores = bboxes[:, 1].astype('float32')
+    # boxes = bboxes[:, 2:].astype('float32')      
+    # img = cv2.imread(os.path.join(img_dir, img_name))
+    # img = draw_bbox_image(img, boxes, labels, scores, labels_name, thre=core.DRAW_THRESHOLD)
+    # img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
+    # # output_dir = core.SAVE_DIR + '/' + img_name
+    # output_dir = os.path.join(core.SAVE_DIR , img_name)
+    # cv2.imwrite(output_dir, img)
 
     end_time = time.time()
-    return output_dir,round(end_time - start_time, 3)
+    return result,round(end_time - start_time, 3)
 
 def edge_load_model(path_prefix,img):
     paddle.enable_static()
-    startup_prog = paddle.static.default_startup_program()
     start_time = time.time()
-
     exe = paddle.static.Executor(paddle.CPUPlace())
-    exe.run(startup_prog)
 
     [inference_program, feed_target_names, fetch_targets] = (
         paddle.static.load_inference_model(path_prefix, exe))
@@ -155,11 +142,8 @@ def edge_load_model(path_prefix,img):
 
 def cloud_load_tensor(path_prefix, tensor):
     paddle.enable_static()
-    startup_prog = paddle.static.default_startup_program()
     start_time = time.time()
-
     exe = paddle.static.Executor(paddle.CPUPlace())
-    exe.run(startup_prog)
 
     [inference_program, feed_target_names, fetch_targets] = (
         paddle.static.load_inference_model(path_prefix, exe))
@@ -171,7 +155,7 @@ def cloud_load_tensor(path_prefix, tensor):
     end_time = time.time()
     return [result[i].index(max(result[i])) for i in range(len(result))], round(end_time - start_time, 3)
 
-
+import requests
 if __name__ == "__main__":
     # tensor,edge_infer_time = edge_load_model(
     #     path_prefix="../data/send/model/client_infer_resnet18_cifar10",
@@ -181,18 +165,25 @@ if __name__ == "__main__":
     #     path_prefix="../data/send/model/server_infer_resnet18_cifar10",tensor=tensor)
     # print(result)
     image_shape, tensor, edge_infer_time = edge_load_model_yolo(
-            model_path="./data/send/client_infer_yolov3", 
+            model_path="./data/edge/client_infer_yolov3", 
             img_dir="./data/test",
-            img_name = "kite.jpg")
+            img_name = "dog.jpg")
     
     output, cloud_infer_time  = cloud_load_tensor_yolo(
             image_shape=image_shape, 
             tensor=tensor, 
-            model_path="./data/send/server_infer_yolov3",
+            model_path="./data/cloud/server_infer_yolov3",
             img_dir="./data/test",
-            img_name="kite.jpg")
-    print("Result saved in " + output)
-
+            img_name="dog.jpg")
+    # print("Result saved in " + output)
+    infos = {'filename':"dog.jpg",
+             'edgetime':edge_infer_time,
+             'cloudtime':cloud_infer_time,
+             'result':output}
+    
+    print(json.loads(output))
+    r = requests.get("http://127.0.0.1:5000/receive_result", params=infos)
+    # print(r.text)
 
 
 

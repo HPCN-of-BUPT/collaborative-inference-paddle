@@ -1,7 +1,7 @@
 import json, socket, time, struct, sys
 import numpy as np
 import core
-from transmit.processbar import process_bar
+from processbar import process_bar
 from load_model import cloud_load_tensor_yolo
 
 import requests
@@ -33,6 +33,7 @@ def receive_loop(type):
         while True:
             # 边端接收切割模型或待检测图片
             filename = recv_file(client)
+
 
 # 边端接收模型文件或待检测图片
 def recv_file(client):
