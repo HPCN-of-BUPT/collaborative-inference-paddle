@@ -19,20 +19,27 @@
 ## Quick Start
 
 ```bash
-# 云进程
+# 云进程：接收模型、中间tensor；返回结果
 $ python3 cloud.py 
     --cloud_host "xxx.xxx.xxx.xxx"  # 云IP
     --edge_host "xxx.xxx.xxx.xxx"   # 端IP
     --cloud_port xxxx   # 云接收端口
     --edge_port xxxx    # 端接收端口
 
-# 端进程
+# 端进程：接收模型、待检测图片；传输tensor
 $ python3 edge.py 
     --cloud_host "xxx.xxx.xxx.xxx"  # 云IP
     --edge_host "xxx.xxx.xxx.xxx"   # 端IP
     --cloud_port xxxx   # 云接收端口
     --edge_port xxxx    # 端接收端口
     --channal_error 0~0.02 # 信道误码率
+
+# 后台进程：发送模型，待检测图片
+$ python3 backend.py
+    --cloud_host "xxx.xxx.xxx.xxx"  # 云IP
+    --edge_host "xxx.xxx.xxx.xxx"   # 端IP
+    --cloud_port xxxx   # 云接收端口
+    --edge_port xxxx    # 端接收端口
 ```
 
 Tips

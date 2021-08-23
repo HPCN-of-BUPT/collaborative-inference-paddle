@@ -28,7 +28,7 @@ def cloud_receive_model_loop():
     flag = -1
     while flag != 0:
         client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        flag = client.connect_ex((core.CLOUD_HOST, core.CLOUD_MODEL_PORT))
+        flag = client.connect_ex((core.BACKEND_HOST, core.CLOUD_MODEL_PORT))
         if flag != 0 :
             print("Cloud refused to connect, please start cloud process!")
         time.sleep(2)
@@ -131,19 +131,19 @@ def recv_into(arr, source):
 
 def parse_args():
     parser = argparse.ArgumentParser("Cloud Threads")
-    parser.add_argument('--cloud_host', type=str, default='',help="host of cloud")
+    parser.add_argument('--backend_host', type=str, default='',help="host of backend")
     parser.add_argument('--edge_host', type=str, default='', help='host of edge')
-    parser.add_argument('--cloud_port', type=int, default=0, help='port of cloud sendto edge')
-    parser.add_argument('--edge_port', type=int, default=0, help="port of edge sendto cloud")
+    parser.add_argument('--cloud_model_port', type=int, default=0, help='port of backend send tensor to cloud')
+    parser.add_argument('--cloud_tensor_port', type=int, default=0, help="port of edge send tensor to cloud")
     args = parser.parse_args()
     return args
 if __name__ == '__main__':
     # 测试配置
     args = parse_args()
-    # core.CLOUD_HOST = args.cloud_host if args.cloud_host else core.CLOUD_HOST
-    # core.EDGE_HOST = args.edge_host if args.edge_host else core.EDGE_HOST
-    # core.CLOUD_SENTTO_EDGE = args.cloud_port if args.cloud_port else core.CLOUD_SENTTO_EDGE
-    # core.EDGE_SENDTO_CLOUD = args.edge_port if args.edge_port else core.EDGE_SENDTO_CLOUD
+    core.BACKEND_HOST = args.backend_host if args.backend_host else core.BACKEND_HOST
+    core.EDGE_HOST = args.edge_host if args.edge_host else core.EDGE_HOST
+    core.CLOUD_MODEL_PORT = args.cloud_model_port if args.cloud_model_port else core.CLOUD_MODEL_PORT
+    core.CLOUD_TENSOR_PORT = args.cloud_tensor_port if args.cloud_tensor_port else core.CLOUD_TENSOR_PORT
    
     # 云端发送文件线程
     cloud_receive_model_thread = Thread(target=cloud_receive_model_loop,name="cloud_receive_model")

@@ -12,7 +12,7 @@ def edge_receive_loop():
     flag = -1
     while flag != 0:
         client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        flag = client.connect_ex((core.CLOUD_HOST, core.EDGE_PORT))
+        flag = client.connect_ex((core.BACKEND_HOST, core.EDGE_MODEL_PORT))
         if flag != 0 :
             print("Cloud refused to connect, please start cloud process!")
         time.sleep(2)
@@ -44,16 +44,20 @@ def edge_send_loop():
                     if (int(results['number']) > 0):
                         images = r.json()['file_list']       
                     for index, image in enumerate(images):
+                        # Windows: change / to \\
+                        filename = image['filename'].split("/")[-1]
                         start_time = time.time()
                         results = exe.run(inference_program,
                                 feed={feed_target_names[0]: np.array(json.loads(image['tensor']), dtype=np.float32)},
                                 fetch_list=fetch_targets)
                         shape = np.array(json.loads(image['shape']), dtype=np.int32)
                         end_time = time.time()
-                        # Windows: change / to \\
+                        edge_infer_time = round(end_time - start_time, 3)
+                        # 边端计算得到中间tensor
+                        print("\nEdge cost {}s infer {} ".format(edge_infer_time, filename))
                         send_tensor(conn=conn, 
-                                    filename=image['filename'].split("/")[-1], 
-                                    edge_infer_time=round(end_time - start_time, 3), 
+                                    filename= filename, 
+                                    edge_infer_time=edge_infer_time, 
                                     tensor_list = results, 
                                     image_shape=shape)
                     time.sleep(1)
@@ -68,12 +72,11 @@ def recv_file(client):
     file_info = json.loads(file_info.decode('utf-8'))
     filesize = file_info['filesize']
     filename = file_info['filename']
-    type = file_info['type']
     # 接收文件
     recv_len = 0
     start_time = time.time()
     # 根据类型判断存储路径
-    save_dir = filename.replace("send", "edge") if type == "model" else filename
+    save_dir = filename.replace("send", "edge")
     # 存储文件
     with open(save_dir, 'wb') as f:
         while recv_len < filesize:
@@ -95,11 +98,6 @@ def recv_file(client):
     return filename
 
 def send_tensor(conn, filename, edge_infer_time, tensor_list, image_shape):
-    # 边端计算得到中间tensor
-    # image_shape, tensor_list, edge_infer_time = edge_load_model_yolo(model_path=model_prefix, img_dir=core.LOAD_DIR, img_name=filename)
-    print("\nEdge cost {}s infer {} ".format(edge_infer_time, filename))
-
-    # tensor_size = sys.getsizeof(tensor_list[0])
     tensor_shape = get_tensor_shape(tensor_list)
     # 发送文件头信息
     dict = {
@@ -140,26 +138,26 @@ def get_tensor_shape(tensor_list):
     return shape_list
 def parse_args():
     parser = argparse.ArgumentParser("Cloud Threads")
-    parser.add_argument('--cloud_host', type=str, default='',help="host of cloud")
+    parser.add_argument('--backend_host', type=str, default='',help="host of backend")
     parser.add_argument('--edge_host', type=str, default='', help='host of edge')
-    parser.add_argument('--cloud_port', type=int, default=0, help='port of cloud sendto edge')
-    parser.add_argument('--edge_port', type=int, default=0, help="port of edge sendto cloud")
-    parser.add_argument('--channal_error', type=float, default=0, help='channal error(0~0.25)')
+    parser.add_argument('--edge_model_port', type=int, default=0, help='port of backend send model to edge')
+    parser.add_argument('--cloud_tensor_port', type=int, default=0, help="port of edge send tensor to cloud")
+    # parser.add_argument('--channal_error', type=float, default=0, help='channal error(0~0.25)')
     args = parser.parse_args()
     return args
 
 if __name__ == '__main__':
     args = parse_args()
-    # core.CLOUD_HOST = args.cloud_host if args.cloud_host else core.CLOUD_HOST
-    # core.EDGE_HOST = args.edge_host if args.edge_host else core.EDGE_HOST
-    # core.CLOUD_SENTTO_EDGE = args.cloud_port if args.cloud_port else core.CLOUD_SENTTO_EDGE
-    # core.EDGE_SENDTO_CLOUD = args.edge_port if args.edge_port else core.EDGE_SENDTO_CLOUD
+    core.BACKEND_HOST = args.backend_host if args.backend_host else core.BACKEND_HOST
+    core.EDGE_HOST = args.edge_host if args.edge_host else core.EDGE_HOST
+    core.EDGE_MODEL_PORT = args.edge_model_port if args.edge_model_port else core.EDGE_MODEL_PORT
+    core.CLOUD_TENSOR_PORT = args.cloud_tensor_port if args.cloud_tensor_port else core.CLOUD_TENSOR_PORT
     # core.ERROR_RATE = args.channal_error if args.channal_error else core.ERROR_RATE
 
     # 边端发送中间特征线程
-    edge_server_thread = Thread(target=edge_send_loop, name="edge_server_thread")
+    edge_send_thread = Thread(target=edge_send_loop, name="edge_server_thread")
     # 边端接收切割模型/待检测图片线程
-    edge_client_thread = Thread(target=edge_receive_loop, name="edge_client_thread")
-    edge_client_thread.start()
+    edge_receive_thread = Thread(target=edge_receive_loop, name="edge_client_thread")
+    edge_receive_thread.start()
     # time.sleep(10)
-    edge_server_thread.start()
+    edge_send_thread.start()
