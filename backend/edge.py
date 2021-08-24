@@ -27,7 +27,7 @@ def edge_send_loop():
     while True:
         # 建立通信连接
         conn, addr = server.accept()
-        print("Edge Server(I) {} : {} has connected to Cloud client(others) {} : {}".
+        print("Edge {} : {} has connected to Cloud {} : {}".
                 format(core.EDGE_HOST,core.CLOUD_TENSOR_PORT,addr[0],addr[1]))
         while True:
             # 加载模型
@@ -35,7 +35,7 @@ def edge_send_loop():
                 # 使用opt工具优化原始模型
                 output_model = model_to_lite(model_path=core.EDGE_MODEL_DIR + '.pdmodel',
                     param_path=core.EDGE_MODEL_DIR + '.pdiparams')
-                    
+
                 # paddle-inference
                 # paddle.enable_static()
                 # exe = paddle.static.Executor(paddle.CPUPlace())

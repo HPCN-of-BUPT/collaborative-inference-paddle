@@ -10,7 +10,7 @@ def send_edge_loop():
     server.listen(5)
     while True:
         conn, addr = server.accept()
-        print("Cloud Server(I) {} : {} has connected to Edge client(others) {} : {}".
+        print("Backend {} : {} has connected to Edge {} : {}".
                 format(core.BACKEND_HOST,core.EDGE_MODEL_PORT,addr[0],addr[1]))
         while True:
             # 发送边端模型文件
@@ -25,7 +25,7 @@ def send_cloud_loop():
     server.listen(5)
     while True:
         conn, addr = server.accept()
-        print("Cloud Server(I) {} : {} has connected to Edge client(others) {} : {}".
+        print("Backend {} : {} has connected to Cloud {} : {}".
                 format(core.BACKEND_HOST,core.CLOUD_MODEL_PORT,addr[0],addr[1]))
         while True:
             # 发送云端模型文件
