@@ -4,7 +4,7 @@ import requests
 import core
 from threading import Thread
 import paddle
-from load_model import edge_load_model_yolo
+from load_model import model_to_lite, edge_load_model_yolo_lite
 from transmit import processbar
 image_list = []
 def edge_receive_loop():
@@ -32,10 +32,16 @@ def edge_send_loop():
         while True:
             # 加载模型
             if (os.path.isfile(core.EDGE_MODEL_DIR + '.pdmodel') and os.path.isfile(core.EDGE_MODEL_DIR + '.pdiparams')):
-                paddle.enable_static()
-                exe = paddle.static.Executor(paddle.CPUPlace())
-                [inference_program, feed_target_names, fetch_targets] = (
-                    paddle.static.load_inference_model(core.EDGE_MODEL_DIR, exe))
+                # 使用opt工具优化原始模型
+                output_model = model_to_lite(model_path=core.EDGE_MODEL_DIR + '.pdmodel',
+                    param_path=core.EDGE_MODEL_DIR + '.pdiparams')
+                    
+                # paddle-inference
+                # paddle.enable_static()
+                # exe = paddle.static.Executor(paddle.CPUPlace())
+                # [inference_program, feed_target_names, fetch_targets] = (
+                #     paddle.static.load_inference_model(core.EDGE_MODEL_DIR, exe))
+                
                 # 循环发送请求预处理图片
                 while True:
                     r = requests.get('http://127.0.0.1:5000/transmit_image')
@@ -48,13 +54,21 @@ def edge_send_loop():
                     for index, image in enumerate(images):
                         # Windows: change / to \\
                         filename = image['filename'].split("/")[-1]
-                        start_time = time.time()
-                        results = exe.run(inference_program,
-                                feed={feed_target_names[0]: np.array(json.loads(image['tensor']), dtype=np.float32)},
-                                fetch_list=fetch_targets)
-                        shape = np.array(json.loads(image['shape']), dtype=np.int32)
-                        end_time = time.time()
-                        edge_infer_time = round(end_time - start_time, 3)
+                        
+                        # paddle inference
+                        # start_time = time.time()
+                        # results = exe.run(inference_program,
+                        #         feed={feed_target_names[0]: np.array(json.loads(image['tensor']), dtype=np.float32)},
+                        #         fetch_list=fetch_targets)
+                        # shape = np.array(json.loads(image['shape']), dtype=np.int32)
+                        # end_time = time.time()
+                        # edge_infer_time = round(end_time - start_time, 3)
+
+                        # paddle lite
+                        shape, results, edge_infer_time = edge_load_model_yolo_lite(
+                                                                model_path=output_model,
+                                                                image_shape=np.array(json.loads(image['shape']), dtype=np.int32),
+                                                                tensor_image=np.array(json.loads(image['tensor']), dtype=np.float32))
                         # 边端计算得到中间tensor
                         print("\nEdge cost {}s infer {} ".format(edge_infer_time, filename))
                         send_tensor(conn=conn, 
