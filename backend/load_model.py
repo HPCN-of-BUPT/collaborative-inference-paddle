@@ -7,7 +7,7 @@ import paddle
 import paddle.vision.transforms as T
 from PIL import Image, ImageDraw, ImageFont
 import core
-
+import paddlelite.lite as lite
 def read_image(img):
     origin = img
     if img.mode != 'RGB':
@@ -71,6 +71,38 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
                         "#" + color[c], font=font)
     return img
 
+def model_to_lite(model_path, param_path):
+    cmd = []
+    cmd.append("paddle_lite_opt")
+    cmd.append("--model_file=" + model_path)
+    cmd.append("--param_file=" + param_path)
+    cmd.append("--optimize_out_type=naive_buffer")
+    cmd.append("--optimize_out=" + core.EDGE_MODEL_DIR)
+    cmd.append("--valid_targets=x86")
+    cmd.append("--quant_model=true")
+    cmd.append("--quant_type=QUANT_INT8")
+    os.popen(" ".join(cmd))
+    output = core.EDGE_MODEL_DIR + ".nb"
+    print("Model {} optimized successfully.".format(output))
+    return output
+
+def edge_load_model_yolo_lite(model_path,image_shape,tensor_image):
+    paddle.enable_static()
+    start_time = time.time()        
+    config1 = lite.MobileConfig()
+    config1.set_model_from_file(model_path)
+    predictor = lite.create_paddle_predictor(config1)
+    
+    input_tensor = predictor.get_input(0)
+    input_tensor.from_numpy(tensor_image)
+    predictor.run()
+    result1 = predictor.get_output(0).numpy()
+    result1 = np.array(result1)
+    result2 = predictor.get_output(1).numpy()
+    result2 = np.array(result2)
+    results = [result1, result2]
+    end_time = time.time()
+    return image_shape, results, round(end_time - start_time, 3)
 def edge_load_model_yolo(model_path, img_dir, img_name):
     paddle.enable_static()
     start_time = time.time()
@@ -125,35 +157,6 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
 
     end_time = time.time()
     return result,round(end_time - start_time, 3)
-
-def edge_load_model(path_prefix,img):
-    paddle.enable_static()
-    start_time = time.time()
-    exe = paddle.static.Executor(paddle.CPUPlace())
-
-    [inference_program, feed_target_names, fetch_targets] = (
-        paddle.static.load_inference_model(path_prefix, exe))
-
-    results = exe.run(inference_program,
-              feed={feed_target_names[0]: image_preprocess(img)},
-              fetch_list=fetch_targets)
-    end_time = time.time()
-    return np.array(results[0]), round(end_time - start_time, 3)
-
-def cloud_load_tensor(path_prefix, tensor):
-    paddle.enable_static()
-    start_time = time.time()
-    exe = paddle.static.Executor(paddle.CPUPlace())
-
-    [inference_program, feed_target_names, fetch_targets] = (
-        paddle.static.load_inference_model(path_prefix, exe))
-
-    results = exe.run(inference_program,
-              feed={feed_target_names[0]: tensor},
-              fetch_list=fetch_targets)
-    result = results[0].tolist()
-    end_time = time.time()
-    return [result[i].index(max(result[i])) for i in range(len(result))], round(end_time - start_time, 3)
 
 import requests
 if __name__ == "__main__":
