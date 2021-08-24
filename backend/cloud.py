@@ -19,7 +19,6 @@ def cloud_receive_tensor_loop():
         # 云端接收中间特征并计算最终结果
         infos = recv_tensor(client=client, model_prefix=core.CLOUD_MODEL_DIR)
         # 云端保存最终结果至数据库
-        # add_system_result(infos)
         r = requests.get("http://127.0.0.1:5000/receive_result", params=infos)
         print(r.text)
 
@@ -46,12 +45,11 @@ def recv_file(client):
     file_info = json.loads(file_info.decode('utf-8'))
     filesize = file_info['filesize']
     filename = file_info['filename']
-    type = file_info['type']
     # 接收文件
     recv_len = 0
     start_time = time.time()
     # 根据类型判断存储路径
-    save_dir = filename.replace("send", "cloud") if type == "model" else filename
+    save_dir = filename.replace("send", "cloud")
     # 存储文件
     with open(save_dir, 'wb') as f:
         while recv_len < filesize:

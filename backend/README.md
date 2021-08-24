@@ -27,7 +27,9 @@ $ python3 edge.py
 **backend.py**
 - `backend_sendto_edge_thread`:通过建立socket连接，发送send文件夹中的边端模型，文件前缀为`infer_client_*`,包括`pdmodel`和`pdiparams`两个文件
 - `backend_sendto_cloud_thread`:通过建立socket连接，发送send文件夹中的云端模型，文件前缀为`infer_server_*`,包括`pdmodel`和`pdiparams`两个文件
-
+**app.py**
+- `/transmit_image`,本地预处理用户上传到`test`文件夹的图片后发送至边端
+- `/receive_result`,接收云端最终推理结果及传输信息，由后台进行标框
 
 ### 云端模块 
 **cloud.py**
@@ -40,7 +42,7 @@ $ python3 edge.py
 - `edge_send_thread`:通过`transmit_image`批量请求预处理后的待检测图片，并进行部分结果推演，将图片信息和中间特征通过socket传输至云端，包括文件名、特征边端推演时间；
 
 ## Utils
-- db_utils:
-- transmit_utils:
-- model_utils:
-- performance_utils:
+- `db_utils`:数据库；
+- `transmit`:数据压缩、信道翻转；
+- `model`:模型切割、裁剪、量化；
+- `performance_test`:性能评估；

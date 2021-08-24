@@ -31,7 +31,7 @@ def edge_send_loop():
                 format(core.EDGE_HOST,core.CLOUD_TENSOR_PORT,addr[0],addr[1]))
         while True:
             # 加载模型
-            if (os.path.isfile(core.EDGE_MODEL_DIR + '.pdmodel')):
+            if (os.path.isfile(core.EDGE_MODEL_DIR + '.pdmodel') and os.path.isfile(core.EDGE_MODEL_DIR + '.pdiparams')):
                 paddle.enable_static()
                 exe = paddle.static.Executor(paddle.CPUPlace())
                 [inference_program, feed_target_names, fetch_targets] = (
@@ -42,7 +42,9 @@ def edge_send_loop():
                     results = r.json()
                     # print(results)
                     if (int(results['number']) > 0):
-                        images = r.json()['file_list']       
+                        images = r.json()['file_list']
+                    else:
+                        images = []       
                     for index, image in enumerate(images):
                         # Windows: change / to \\
                         filename = image['filename'].split("/")[-1]
