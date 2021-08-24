@@ -8,7 +8,8 @@ import paddle.vision.transforms as T
 from PIL import Image, ImageDraw, ImageFont
 import core
 import paddlelite.lite as lite
-# from paddle_serving_client import Client
+from paddle_serving_client import Client
+import paddle_serving_client.io as serving_io
 
 labels_name = [ 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 
                 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 
@@ -98,7 +99,7 @@ def model_to_lite(model_path, param_path):
     os.popen(" ".join(cmd))
     return core.EDGE_MODEL_DIR + ".nb"
 
-def edge_load_model_yolo_lite(model_path,image_shaope,tensor_image):
+def edge_load_model_yolo_lite(model_path,image_shape,tensor_image):
     paddle.enable_static()
     start_time = time.time()        
     config1 = lite.MobileConfig()
@@ -115,6 +116,7 @@ def edge_load_model_yolo_lite(model_path,image_shaope,tensor_image):
     results = [result1, result2]
     end_time = time.time()
     return image_shape, results, round(end_time - start_time, 3)
+
 def edge_load_model_yolo(model_path, img_dir, img_name):
     paddle.enable_static()
     start_time = time.time()        
@@ -134,6 +136,26 @@ def edge_load_model_yolo(model_path, img_dir, img_name):
     end_time = time.time()
     return image_shape, results, round(end_time - start_time, 3)
 
+def convert_model():
+    save_server = os.path.join(core.CLOUD_MODEL_DIR, "serving_server")
+    save_client = os.path.join(core.CLOUD_MODEL_DIR, "serving_client")
+    serving_io.inference_model_to_serving(
+                dirname=core.CLOUD_MODEL_DIR.rsplit("/",1)[0],
+                serving_server=save_server, 
+                serving_client=save_client,  
+                model_filename=core.CLOUD_MODEL_DIR.rsplit("/",1)[-1] + ".pdmodel", 
+                params_filename=core.CLOUD_MODEL_DIR.rsplit("/",1)[-1] + ".pdiparams")
+    return save_server, save_client
+
+def start_cloud_server(thread_num=10, port=9393):
+    server, client= convert_model()
+    cmd = []
+    cmd.append("python3 -m paddle_serving_server.serve")
+    cmd.append("--model=" + server)
+    cmd.append("--thread=" + str(thread_num))
+    cmd.append("--port=" + str(port))
+    r = os.popen(" ".join(cmd))
+    print(r.read())
 
 def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     paddle.enable_static()
@@ -174,18 +196,18 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     return output_dir,round(end_time - start_time, 3)
 
 if __name__ == "__main__":
-
-    output_model = model_to_lite(
-            model_path=core.EDGE_MODEL_DIR + ".pdmodel",
-            param_path=core.EDGE_MODEL_DIR + ".pdiparams"
-    )
-    print(output_model)
-    image_shape, results = edge_load_model_yolo(
-            model_path=output_model, 
-            img_dir=core.LOAD_DIR,
-            img_name = "kite.jpg")
+    start_cloud_server()
+    # output_model = model_to_lite(
+    #         model_path=core.EDGE_MODEL_DIR + ".pdmodel",
+    #         param_path=core.EDGE_MODEL_DIR + ".pdiparams"
+    # )
+    # print(output_model)
+    # image_shape, results = edge_load_model_yolo(
+    #         model_path=output_model, 
+    #         img_dir=core.LOAD_DIR,
+    #         img_name = "kite.jpg")
     
-    print(results)
+    # print(results)
     
     
 #     output, cloud_infer_time  = cloud_load_tensor_yolo(

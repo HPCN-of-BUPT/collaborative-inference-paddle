@@ -96,7 +96,12 @@ def recv_tensor(client, model_prefix):
     # print("Tensor {} received correctly.\t Transmit time {}s".format(filename, tensor_transmit_time))
     
     # 云端计算剩余网络层
-    results, cloud_infer_time = cloud_load_tensor_yolo(image_shape=np.array(image_shape, dtype=np.int32),tensor=tensor_list,model_path=model_prefix,img_dir=core.LOAD_DIR,img_name=filename)
+    results, cloud_infer_time = cloud_load_tensor_yolo(
+                                image_shape=np.array(image_shape, dtype=np.int32),
+                                tensor=tensor_list,
+                                model_path=model_prefix,
+                                img_dir=core.LOAD_DIR,
+                                img_name=filename)
     # print("Cloud cost {}s infer Tensor {}".format(cloud_infer_time, filename))
     # print("Tensor {}\t Result:{}".format(filename, results))
 
