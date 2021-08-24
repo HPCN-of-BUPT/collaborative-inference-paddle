@@ -32,6 +32,7 @@ $ python3 edge.py
 **backend.py**
 - `backend_sendto_edge_thread`:通过建立socket连接，发送send文件夹中的边端模型，文件前缀为`infer_client_*`,包括`pdmodel`和`pdiparams`两个文件
 - `backend_sendto_cloud_thread`:通过建立socket连接，发送send文件夹中的云端模型，文件前缀为`infer_server_*`,包括`pdmodel`和`pdiparams`两个文件
+
 **app.py**
 - `/transmit_image`,本地预处理用户上传到`test`文件夹的图片后发送至边端
 - `/receive_result`,接收云端最终推理结果及传输信息，由后台进行标框
