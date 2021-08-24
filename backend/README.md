@@ -2,18 +2,23 @@
 
 ## Quick Start
 ```bash
-# 云进程：接收模型、中间tensor；返回结果
+# 后端进程：建立socket连接，下发模型；
 $ python3 backend.py
     --backend_host "xxx.xxx.xxx.xxx"  # 后台IP
     --cloud_model_port xxxx   # 后台发送云端模型端口
     --edge_model_port xxxx    # 后台发送边端模型端口
 
+# 后端进程：建立http连接，发送图片&返回结果；
+$ python3 app.py
+
+# 云端进程：socket接收模型和中间特征，http返回结果
 $ python3 cloud.py 
     --backend_host "xxx.xxx.xxx.xxx"  # 后台IP
     --edge_host "xxx.xxx.xxx.xxx"   # 端IP
     --cloud_model_port xxxx   # 后台发送云端模型端口
     --cloud_tensor_port xxxx    # 边端发送中间特征端口
 
+# 边端进程：socket接收模型和发送中间特征，http接收预处理图片
 $ python3 edge.py 
     --backend_host "xxx.xxx.xxx.xxx"  # 后台IP
     --edge_host "xxx.xxx.xxx.xxx"   # 端IP
@@ -46,3 +51,7 @@ $ python3 edge.py
 - `transmit`:数据压缩、信道翻转；
 - `model`:模型切割、裁剪、量化；
 - `performance_test`:性能评估；
+
+## Else
+- `core.py`:参数配置；
+- `load_model.py`:模型部署；
