@@ -47,8 +47,9 @@ class ModelDivide(db.Model):
 class System(db.Model):
     __tablename__ = 'system'
     id = db.Column(db.Integer, primary_key=True)
-    transmit_size = db.Column(db.Float)#传输数据量
+    filename = db.Column(db.String(255)) #文件名
 
+    transmit_size = db.Column(db.Float)#传输数据量
     edge_time = db.Column(db.Float) #边推理时间
     cloud_time = db.Column(db.Float) #云推理时间
     transmit_time = db.Column(db.Float)#传输时间

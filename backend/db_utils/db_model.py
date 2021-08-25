@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-from app import db
+from edge_app import db
 
 # from flask import Flask
 # from flask_sqlalchemy import SQLAlchemy

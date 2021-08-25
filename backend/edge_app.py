@@ -11,8 +11,8 @@ import pymysql
 pymysql.version_info = (1, 4, 13, "final", 0)
 pymysql.install_as_MySQLdb()
 
-from db_utils import db_op
-from db_utils import db_save
+from db_utils.db_predict import *
+from db_utils.db_model import *
 from db_utils import config
 import core
 
@@ -37,50 +37,19 @@ def after_request(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     return response
 
-#模型切割请求
-@app.route('/cut',methods=['POST'])
-def cut():
-    print(request.data)
-    model_divide_id = db_op.add_restriction(eval(request.data))
-
-    #模型切割模块....
-    edge_model,cloud_model,edge_cloud_model = db_save.add_submodel(model_divide_id)
-    edge = {'flops':edge_model.flops,'params':edge_model.params}
-    cloud = {'flops':cloud_model.flops,'params':cloud_model.params}
-    edge_cloud = {'flops':edge_cloud_model.flops,'params':edge_cloud_model.params}
-    models = {'edge':edge,'cloud':cloud,'edge_cloud':edge_cloud}
-    return jsonify({'result':'success','models':models})
-
-
-#图像测试文件上传（前端）   ***1
+#图像测试文件上传（前端-后端）
 @app.route('/image_upload',methods=['POST'])
 def image_upload():
     file = request.files.get('file')
-    input_dir = './data/input/'
-    file.filename = 'predict.jpg'
+    input_dir = core.LOAD_DIR
     file_path = input_dir + file.filename
     print(file_path)
     file.save(file_path)
-    flag = True
-    output_dir = '../../backend/data/output'
-    while flag:
-        for file in os.listdir(output_dir):
-            if file == filename:
-                flag = False
-    f = open(os.path.join(output_dir,filename),'rb')
-    base64_str = base64.b64encode(f.read())
-    name, edgetime, cloudtime, transmitsize, transmittime = db_op.find_result(filename=filename)
-    msg = {'filename':name,
-             'edgetime':edgetime,
-             'cloudtime':cloudtime,
-             'transmitsize':transmitsize,
-             'transmittime':transmittime,
-             'img_base64':str(base64_str,'utf-8')}
-    #print(msg2)
-    return jsonify({'msg':msg})
+    return jsonify({'msg': 'success'})
+
 
 # 传输预处理后的待检测图片
-image_list = []
+# image_list = []
 @app.route('/transmit_image', methods=['POST','GET'])
 def transmit_result():
     file_list = []
@@ -96,8 +65,9 @@ def transmit_result():
                     "shape": str(image_shape),
                     "tensor":str(tensor_img.tolist())}
             file_list.append(info)
-            image_list.append(filename)
+            # image_list.append(filename)
             number += 1
+    status.EDGE_STATUS = 1
     return {"file_list" : file_list, "number": number}
 
 def read_image(img):
@@ -120,12 +90,23 @@ def read_image(img):
     img = img[np.newaxis, :]
     return origin, img, resized_img
 
+#检测边端是否已接收图片（前端-后端）
+@app.route('/edge',methods=['POST','GET'])
+def edge():
+    if status.EDGE_STATUS == 0:
+        return jsonify({'msg':'false'})
+    else:
+        return jsonify({'msg':'true'})
+
+
 # 接收检测结果
 @app.route('/receive_result',methods=['POST','GET'])
 def receive_result():
     results = request.args
     # flag = 0, success; flag = 1, no object detected
     flag = draw_box(results['result'], results['filename'])
+    # status.ID = add_result(db, System, results['result']) #结果添加数据库
+    # status.TEST_STATUS = 1
     return "success"
 
 def draw_box(bboxes,filename):
@@ -143,6 +124,8 @@ def draw_box(bboxes,filename):
     draw = ImageDraw.Draw(img)
     line_thickness = max(int(min(img.size) / 200), 2)
     # win:arial.ttf
+    # font = ImageFont.truetype("arial.ttf", size=max(round(max(img.size) / 40), 12))
+    
     font = ImageFont.truetype("Arial.ttf", size=max(round(max(img.size) / 40), 12))
 
     for box, label,score in zip(boxes, labels, scores):
@@ -156,6 +139,20 @@ def draw_box(bboxes,filename):
     output_dir = os.path.join(core.SAVE_DIR, filename)
     cv2.imwrite(output_dir, img)
     return 0
+
+#请求检测结果（前端）
+@app.route('/get_result',methods=['POST','GET'])
+def getResult():
+    if status.TEST_STATUS == 0:
+        return jsonify({'msg':'false'})
+    else:
+        status.EDGE_STATUS = 0
+        status.TEST_STATUS = 0
+        results = get_result(db,System,status.ID)
+
+        f = open(os.path.join(core.LOAD_DIR, results['filename']), 'rb')
+        base64_str = base64.b64encode(f.read())
+        return jsonify({'msg':'true','result':results,'img_base64':str(base64_str,'utf-8')})
 
 if __name__ == '__main__':
     app.run()
