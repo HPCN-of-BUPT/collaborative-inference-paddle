@@ -49,7 +49,7 @@ def image_upload():
 
 
 # 传输预处理后的待检测图片
-image_list = []
+# image_list = []
 @app.route('/transmit_image', methods=['POST','GET'])
 def transmit_result():
     file_list = []
@@ -65,7 +65,7 @@ def transmit_result():
                     "shape": str(image_shape),
                     "tensor":str(tensor_img.tolist())}
             file_list.append(info)
-            image_list.append(filename)
+            # image_list.append(filename)
             number += 1
     status.EDGE_STATUS = 1
     return {"file_list" : file_list, "number": number}
@@ -105,8 +105,8 @@ def receive_result():
     results = request.args
     # flag = 0, success; flag = 1, no object detected
     flag = draw_box(results['result'], results['filename'])
-    status.ID = add_result(db, System, results['result']) #结果添加数据库
-    status.TEST_STATUS = 1
+    # status.ID = add_result(db, System, results['result']) #结果添加数据库
+    # status.TEST_STATUS = 1
     return "success"
 
 def draw_box(bboxes,filename):
@@ -124,7 +124,9 @@ def draw_box(bboxes,filename):
     draw = ImageDraw.Draw(img)
     line_thickness = max(int(min(img.size) / 200), 2)
     # win:arial.ttf
-    font = ImageFont.truetype("arial.ttf", size=max(round(max(img.size) / 40), 12))
+    # font = ImageFont.truetype("arial.ttf", size=max(round(max(img.size) / 40), 12))
+    
+    font = ImageFont.truetype("Arial.ttf", size=max(round(max(img.size) / 40), 12))
 
     for box, label,score in zip(boxes, labels, scores):
         c = random.randint(0,19)

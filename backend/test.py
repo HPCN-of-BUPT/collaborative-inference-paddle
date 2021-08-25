@@ -196,24 +196,24 @@ def cloud_load_tensor_yolo(image_shape, tensor, model_path, img_dir,img_name):
     return output_dir,round(end_time - start_time, 3)
 
 if __name__ == "__main__":
-    start_cloud_server()
-    # output_model = model_to_lite(
-    #         model_path=core.EDGE_MODEL_DIR + ".pdmodel",
-    #         param_path=core.EDGE_MODEL_DIR + ".pdiparams"
-    # )
-    # print(output_model)
-    # image_shape, results = edge_load_model_yolo(
-    #         model_path=output_model, 
-    #         img_dir=core.LOAD_DIR,
-    #         img_name = "kite.jpg")
+    # start_cloud_server()
+    output_model = model_to_lite(
+            model_path=core.EDGE_MODEL_DIR + ".pdmodel",
+            param_path=core.EDGE_MODEL_DIR + ".pdiparams"
+    )
+    print(output_model)
+    image_shape, results = edge_load_model_yolo(
+            model_path=output_model, 
+            img_dir=core.LOAD_DIR,
+            img_name = "kite.jpg")
     
-    # print(results)
+    print(results)
     
     
-#     output, cloud_infer_time  = cloud_load_tensor_yolo(
-#             image_shape=image_shape, 
-#             tensor=results, 
-#             model_path="serving_client/serving_client_conf.prototxt",
-#             img_dir=core.LOAD_DIR,
-#             img_name="kite.jpg")
-#     print("Result saved in " + output)
+    output, cloud_infer_time  = cloud_load_tensor_yolo(
+            image_shape=image_shape, 
+            tensor=results, 
+            model_path="serving_client/serving_client_conf.prototxt",
+            img_dir=core.LOAD_DIR,
+            img_name="kite.jpg")
+    print("Result saved in " + output)

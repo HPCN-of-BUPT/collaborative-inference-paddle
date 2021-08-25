@@ -33,6 +33,7 @@ def edge_send_loop():
             # 加载模型
             if (os.path.isfile(core.EDGE_MODEL_DIR + '.pdmodel') and os.path.isfile(core.EDGE_MODEL_DIR + '.pdiparams')):
                 # 使用opt工具优化原始模型
+                time.sleep(10)
                 output_model = model_to_lite(model_path=core.EDGE_MODEL_DIR + '.pdmodel',
                     param_path=core.EDGE_MODEL_DIR + '.pdiparams')
 
