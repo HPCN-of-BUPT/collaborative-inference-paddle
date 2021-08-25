@@ -87,7 +87,7 @@ def model_analyse(infer_model_filepath, input_shape, batch_size=1, only_weight =
         print('Model Size:{0} Params, {1} Bytes'.format(var_count, model_size))
         print("Output data size is {0} bytes, shape is {1}".format(output_size, output_shape))
 
-    return flops, model_size, output_size
+    return flops, var_count, output_size
 
 
 def calc_output_tensor_size(infer_model_path, input_shape, batch_size=1, dtype='float32', only_weight = False):

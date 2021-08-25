@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-from edge_app import db
+from app import db
 
 # from flask import Flask
 # from flask_sqlalchemy import SQLAlchemy
@@ -35,8 +35,9 @@ class Restriction(db.Model):
 class Submodel(db.Model):
     __tablename__ = 'submodel'
     id = db.Column(db.Integer, primary_key=True)
-    flops = db.Column(db.Float)
-    params = db.Column(db.Float)
+    flops = db.Column(db.String(255))
+    params = db.Column(db.String(255))
+    output_size = db.Column(db.String(255))
     type = db.Column(db.Integer)#模型类型 0：云-边模型  1：云模型  2：边模型
     model_divide_id = db.Column(db.Integer)
 
@@ -51,12 +52,13 @@ class ModelDivide(db.Model):
 class System(db.Model):
     __tablename__ = 'system'
     id = db.Column(db.Integer, primary_key=True)
-    transmit_size = db.Column(db.Float)#传输数据量
+    filename = db.Column(db.String(255))  # 文件名
 
-    edge_time = db.Column(db.Float) #边推理时间
-    cloud_time = db.Column(db.Float) #云推理时间
-    transmit_time = db.Column(db.Float)#传输时间
-    cloud_edge_ratio = db.Column(db.Float) #云边协同比
+    transmit_size = db.Column(db.Float)  # 传输数据量
+    edge_time = db.Column(db.Float)  # 边推理时间
+    cloud_time = db.Column(db.Float)  # 云推理时间
+    transmit_time = db.Column(db.Float)  # 传输时间
+    cloud_edge_ratio = db.Column(db.Float)  # 云边协同比
 
     time = db.Column(db.Float)
     accuracy = db.Column(db.Float)

@@ -2,8 +2,9 @@ import performance_test.paddle_eval as paddle_eval
 # 此example.py为示例。本文件夹以外的地方，可以import performance_test来代替直接引入paddle_eval。
 # 所有函数都有详细注释。
 
+
 print("Client Model Analyse:")
-c_infer_model_filepath = './data/edge/client_infer_yolov3' # 确定模型文件路径。注意没有后缀。
+c_infer_model_filepath = '../data/edge/client_infer_yolov3' # 确定模型文件路径。注意没有后缀。
 
 c_program = paddle_eval.construct_simple_program(c_infer_model_filepath) # 使用flops和model_size函数前，先传入文件构造Program
 
@@ -19,7 +20,7 @@ c_flops, c_model_size, c_output_size = paddle_eval.model_analyse(c_infer_model_f
 
 
 print("Server Model Analyse:")
-s_infer_model_filepath = './data/cloud/server_infer_yolov3'
+s_infer_model_filepath = '../data/cloud/server_infer_yolov3'
 s_program = paddle_eval.construct_simple_program(s_infer_model_filepath) # 使用flops和model_size函数前，先传入文件构造Program
 
 s_fps = paddle_eval.calc_flops(s_program) # 计算flops的函数，返回模型的flops。

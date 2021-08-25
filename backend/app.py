@@ -12,8 +12,10 @@ pymysql.version_info = (1, 4, 13, "final", 0)
 pymysql.install_as_MySQLdb()
 
 from db_utils.db_predict import *
+from db_utils.db_save import *
 from db_utils.db_model import *
 from db_utils import config
+from performance import *
 import core
 
 app = Flask(__name__)
@@ -153,6 +155,44 @@ def getResult():
         f = open(os.path.join(core.LOAD_DIR, results['filename']), 'rb')
         base64_str = base64.b64encode(f.read())
         return jsonify({'msg':'true','result':results,'img_base64':str(base64_str,'utf-8')})
+
+# 模型切割请求
+@app.route('/cut', methods=['POST'])
+def cut():
+    print(request.data)
+    c_flops, c_var_count, c_output_size = client_()
+    s_fps, s_msize, s_msize = server_()
+
+    return jsonify({'msg':'success',
+                    'results':{
+                        'cloud': {'flops': str(s_fps), 'params': str(s_msize), 'datasize': str(s_msize)},
+                        'edge':{'flops':str(c_flops),'params':str(c_var_count),'datasize':str(c_output_size)}
+                        }
+                    })
+
+
+# 请求模型评估结果
+@app.route('/perform_client_result', methods=['POST','GET'])
+def perform_client_result():
+    infos = request.args
+    add_client(db,Submodel,infos)
+    status.CLIENT_MODEL_STATUS = 1
+    # return jsonify({'msg': 'success',
+    #                 'results': {
+    #                     'cloud': {'flops': 0, 'params': 0, 'datasize': 0},
+    #                     'edge': {'flops': str(c_flops), 'params': str(c_var_count), 'datasize': str(c_output_size)}
+    #                 }
+    #                 })
+    return 'success'
+
+# 请求模型评估结果
+@app.route('/perform_server_result', methods=['POST','GET'])
+def perform_server_result():
+    infos = request.args
+    add_server(db, Submodel, infos)
+    status.SERVER_MODEL_STATUS = 1
+    return 'success'
+
 
 if __name__ == '__main__':
     app.run()

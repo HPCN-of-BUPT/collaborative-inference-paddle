@@ -31,8 +31,9 @@ class Restriction(db.Model):
 class Submodel(db.Model):
     __tablename__ = 'submodel'
     id = db.Column(db.Integer, primary_key=True)
-    flops = db.Column(db.Float)
-    params = db.Column(db.Float)
+    flops = db.Column(db.String(255))
+    params = db.Column(db.String(255))
+    output_size = db.Column(db.String(255))
     type = db.Column(db.Integer)#模型类型 0：云-边模型  1：云模型  2：边模型
     model_divide_id = db.Column(db.Integer)
 

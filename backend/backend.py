@@ -1,5 +1,6 @@
-import socket, glob, json, struct, os, argparse
+import socket, glob, json, struct, os, argparse, requests
 import core
+from performance import *
 from threading import Thread
 cloud_model_list = []
 edge_model_list = []
@@ -18,6 +19,10 @@ def send_edge_loop():
                 if(filename not in cloud_model_list):
                     cloud_model_list.append(filename)
                     send_file(conn, filename)
+                    filepath = os.path.join('./data/send',filename)
+                    infos = client_analyse(filepath)  #模型评估
+                    r = requests.get("http://127.0.0.1:5000/perform_client_result", params=infos)
+                    print(r.text)
 
 def send_cloud_loop():
     server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -33,6 +38,10 @@ def send_cloud_loop():
                 if(filename not in edge_model_list):
                     edge_model_list.append(filename)
                     send_file(conn, filename)
+                    filepath = os.path.join('./data/send', filename)
+                    infos = server_analyse(filepath)  # 模型评估
+                    r = requests.get("http://127.0.0.1:5000/perform_server_result", params=infos)
+                    print(r.text)
 
 def send_file(conn, filename):
     filesize = os.path.getsize(filename)
@@ -51,6 +60,7 @@ def send_file(conn, filename):
         data = f.read()
         conn.sendall(data)
     print("\nFile {} ({} MB) send finish.".format(filename, round(filesize/1000/1000,2)))
+
 
 def parse_args():
     parser = argparse.ArgumentParser("Backend Threads")
