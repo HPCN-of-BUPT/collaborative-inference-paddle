@@ -1,14 +1,14 @@
 # YoLov3_edge_cloud
 This project focuses on edge-cloud collaborative object detection inference, which is established based on PaddlePaddle YoLov3-DarkNet (https://github.com/PaddlePaddle/models/tree/release/1.4/PaddleCV/yolov3). 
-## Prepare Steps
-1. Download the supported model parameters from: https://1drv.ms/u/s!AqK-Jk7aHxL8gUTvLYbXn-9joM5p?e=WS4qPu
+## Preparation
+1. Download the supported model parameters from: https://1drv.ms/u/s!AqK-Jk7aHxL8gUaizyJ6nxkpwMVy?e=PLo9tx
 2. Put the downloaded parameters into the main branch.
 3. Download the coco-2014 dataset with "cd dataset/coco"  "./download.sh"
 4. Set ```export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7``` to specify 8 GPU to train.
 
 ## Training
 - If you want to train the model from scratch, run train.py with ```python3 train.py```. We have the pre-trained model, which is stored in complete_model/model_final
-- After having the pre-trained model, you can train your pruned model with fine-tuning operations using train_prune.py. You can change the pruning ratio and choose the pruning layers. We have finished training one pruned model, which is stored in pruned_model/model_final1.
+- After having the pre-trained model, you can train your pruned model with fine-tuning operations using ```train_prune.py```. You can change the pruning ratio and choose the pruning layers. We have finished training one pruned model, which is stored in pruned_model/model_final.
 
 ## Evaluation
 You can use eval.py to evaluate the completed model and use eval_prune.py to evaluate the pruned model with the "training" type.

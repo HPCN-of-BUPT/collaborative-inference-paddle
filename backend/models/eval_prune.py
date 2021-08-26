@@ -37,7 +37,7 @@ def get_pruned_params(train_program):
     for block in train_program.blocks:
         for param in block.all_parameters():
             if ('conv' in param.name)  and ('yolo_input' not in param.name) and ('downsample' not in param.name) : #and ('stage.0' not in param.name)and ('stage.1' not in param.name)and ('stage.2' not in param.name)
-                if  ('yolo_block' in param.name) or ('stage.3' in param.name) or ('stage.4' in param.name):
+                if  ('yolo_block' in param.name) or ('stage.4' in param.name): #or ('stage.3' in param.name) 
                     params.append(param.name)#or ('batch_norm' in param.name)
     return params
 

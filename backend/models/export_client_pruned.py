@@ -38,7 +38,7 @@ def get_pruned_params(train_program):
     for block in train_program.blocks:
         for param in block.all_parameters():
             if ('conv' in param.name)  and ('yolo_input' not in param.name) and ('downsample' not in param.name) :
-                if  ('yolo_block' in param.name) or ('stage.3' in param.name) or ('stage.4' in param.name):
+                if  ('yolo_block' in param.name) or ('stage.4' in param.name):#or ('stage.3' in param.name) 
                     params.append(param.name)#or ('batch_norm' in param.name)
 
     return params
@@ -94,7 +94,7 @@ def eval():
     exe.run(startup_prog)
 
     fluid.io.load_persistables(exe, cfg.weights, train_program)
-    fluid.io.save_inference_model(cfg.freezed_model, ['image'], outputs, exe, train_program,model_filename='__model3__', params_filename='__params3__')
+    fluid.io.save_inference_model(cfg.freezed_model, ['image'], outputs, exe, train_program,model_filename='split_pruned_client_model', params_filename='split_pruned_client_params')
     
  
 

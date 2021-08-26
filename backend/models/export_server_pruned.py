@@ -38,7 +38,7 @@ def get_pruned_params(train_program):
     for block in train_program.blocks:
         for param in block.all_parameters():
             if ('conv' in param.name)  and ('yolo_input' not in param.name) and ('downsample' not in param.name) : #and ('stage.0' not in param.name)and ('stage.1' not in param.name)and ('stage.2' not in param.name)
-                if  ('yolo_block' in param.name) or ('stage.3' in param.name) or ('stage.4' in param.name):
+                if  ('yolo_block' in param.name)  or ('stage.4' in param.name): #or ('stage.3' in param.name)
                     params.append(param.name)#or ('batch_norm' in param.name)
     return params
 
@@ -46,7 +46,7 @@ def eval():
     image_fake = fluid.layers.data(name='image_fake', shape= [-1, 3, cfg.input_size, cfg.input_size], dtype='float32')
     image1 = fluid.layers.data(name='image1', shape= [-1, 256, 76, 76], dtype='float32')#512,410
     image2 = fluid.layers.data(name='image2', shape= [-1, 512, 38, 38], dtype='float32')#256,205
-    image_shape = fluid.layers.data(name="image_shape", shape=[2], dtype='float32')
+    image_shape = fluid.layers.data(name="image_shape", shape=[2], dtype='int32')
 
     model = YOLOv3_server(is_train=False)
     model.build_input()
@@ -96,7 +96,7 @@ def eval():
 
     exe.run(startup_prog)
     fluid.io.load_persistables(exe, cfg.weights, train_program)
-    fluid.io.save_inference_model(cfg.freezed_model, ['image1','image2','image_shape'], outputs, exe, train_program,model_filename='__model4__', params_filename='__params4__')
+    fluid.io.save_inference_model(cfg.freezed_model, ['image1','image2','image_shape'], outputs, exe, train_program,model_filename='split_pruned_server_model', params_filename='split_pruned_server_params')
 
 
 if __name__ == '__main__':

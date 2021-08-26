@@ -43,7 +43,7 @@ def get_pruned_params(train_program):
 
 def eval():
     image = fluid.layers.data(name='image', shape= [-1, 3, cfg.input_size, cfg.input_size], dtype='float32')
-    image_shape = fluid.layers.data(name="image_shape", shape=[2], dtype='float32')
+    image_shape = fluid.layers.data(name="image_shape", shape=[2], dtype='int32')
 
     
     place = fluid.CUDAPlace(0) if cfg.use_gpu else fluid.CPUPlace()

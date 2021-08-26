@@ -37,7 +37,7 @@ def eval():
     image_fake = fluid.layers.data(name='image_fake', shape= [-1, 3, cfg.input_size, cfg.input_size], dtype='float32')
     image1 = fluid.layers.data(name='image1', shape= [-1, 256, 76, 76], dtype='float32')#512,410
     image2 = fluid.layers.data(name='image2', shape= [-1, 512, 38, 38], dtype='float32')#256,205
-    image_shape = fluid.layers.data(name="image_shape", shape=[2], dtype='float32')
+    image_shape = fluid.layers.data(name="image_shape", shape=[2], dtype='int32')
 
     model = YOLOv3_server(is_train=False)
     model.build_input()
