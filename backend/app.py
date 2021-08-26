@@ -21,7 +21,6 @@ import core
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = config.URL
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # 查询时会显示原始SQL语句
 app.config['SQLALCHEMY_ECHO'] = True
@@ -203,6 +202,19 @@ def perform_server_result():
         return 'fail'
 
 
+# 模型部署上传ip
+@app.route('/cloud_model_arrange', methods=['POST'])
+def cloud_model_arrange():
+    print(request.data)
+    #request.data['cloud_ip']
+    return "success"
+
+# 模型部署上传ip
+@app.route('/edge_model_arrange', methods=['POST'])
+def edge_model_arrange():
+    print(request.data)
+    # request.data['edge_ip']
+    return "success"
 
 if __name__ == '__main__':
     app.run()
