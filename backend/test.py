@@ -86,6 +86,7 @@ def draw_bbox_image(img, boxes, labels, scores,label_names,thre,gt=False):
                         "#" + color[c], font=font)
     return img
 
+# 转化边端模型为paddle-lite调用
 def model_to_lite(model_path, param_path):
     cmd = []
     cmd.append("paddle_lite_opt")
@@ -136,6 +137,7 @@ def edge_load_model_yolo(model_path, img_dir, img_name):
     end_time = time.time()
     return image_shape, results, round(end_time - start_time, 3)
 
+# 转化云端模型为paddle-Serving调用
 def convert_model():
     save_server = os.path.join(core.CLOUD_MODEL_DIR, "serving_server")
     save_client = os.path.join(core.CLOUD_MODEL_DIR, "serving_client")
