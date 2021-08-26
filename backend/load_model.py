@@ -7,7 +7,7 @@ import paddle
 import paddle.vision.transforms as T
 from PIL import Image, ImageDraw, ImageFont
 import core
-# import paddlelite.lite as lite
+import paddlelite.lite as lite
 def read_image(img):
     origin = img
     if img.mode != 'RGB':

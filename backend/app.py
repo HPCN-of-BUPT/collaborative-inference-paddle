@@ -105,7 +105,7 @@ def edge():
 @app.route('/receive_result',methods=['POST','GET'])
 def receive_result():
     results = request.args
-    # flag = 0, success; flag = 1, no object detected
+    # flag = n, n object detected; flag = 0, no object detected
     flag = draw_box(results['result'], results['filename'])
     # status.ID = add_result(db, System, results['result']) #结果添加数据库
     # status.TEST_STATUS = 1
@@ -113,7 +113,7 @@ def receive_result():
 
 def draw_box(bboxes,filename):
     if bboxes == '[]':
-        return 1
+        return 0
     bboxes = np.array(json.loads(bboxes))
     labels = bboxes[:, 0].astype('int32')
     scores = bboxes[:, 1].astype('float32')
@@ -140,7 +140,7 @@ def draw_box(bboxes,filename):
     img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
     output_dir = os.path.join(core.SAVE_DIR, filename)
     cv2.imwrite(output_dir, img)
-    return 0
+    return len(labels)
 
 #请求检测结果（前端）
 @app.route('/get_result',methods=['POST','GET'])
