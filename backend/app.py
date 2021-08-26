@@ -12,7 +12,7 @@ pymysql.version_info = (1, 4, 13, "final", 0)
 pymysql.install_as_MySQLdb()
 
 from db_utils.db_predict import *
-from db_utils.db_save import *
+from db_utils.db_eval import *
 from db_utils.db_model import *
 from db_utils import config
 from performance import *
@@ -160,38 +160,48 @@ def getResult():
 @app.route('/cut', methods=['POST'])
 def cut():
     print(request.data)
-    c_flops, c_var_count, c_output_size = client_()
-    s_fps, s_msize, s_msize = server_()
+    return "success"
 
-    return jsonify({'msg':'success',
-                    'results':{
-                        'cloud': {'flops': str(s_fps), 'params': str(s_msize), 'datasize': str(s_msize)},
-                        'edge':{'flops':str(c_flops),'params':str(c_var_count),'datasize':str(c_output_size)}
-                        }
-                    })
+# 模型切割结果
+@app.route('/cut_result', methods=['GET'])
+def cut_result():
+    if status.CLIENT_MODEL_STATUS == 1 & status.SERVER_MODEL_STATUS == 1:
+        results = get_eval_result(db,Submodel,1)
+        status.CLIENT_MODEL_STATUS = status.SERVER_MODEL_STATUS = 0
+        return jsonify({'msg': 'success',
+                        'results': results
+                        })
+    else:
+        return "fail"
 
 
 # 请求模型评估结果
 @app.route('/perform_client_result', methods=['POST','GET'])
 def perform_client_result():
-    infos = request.args
-    add_client(db,Submodel,infos)
-    status.CLIENT_MODEL_STATUS = 1
-    # return jsonify({'msg': 'success',
-    #                 'results': {
-    #                     'cloud': {'flops': 0, 'params': 0, 'datasize': 0},
-    #                     'edge': {'flops': str(c_flops), 'params': str(c_var_count), 'datasize': str(c_output_size)}
-    #                 }
-    #                 })
-    return 'success'
+    if status.CLIENT_MODEL_STATUS == 0:
+        infos = request.args
+        print("client:")
+        print(infos)
+        add_client(db, Submodel, infos)
+        status.CLIENT_MODEL_STATUS = 1
+        return 'success'
+    else:
+        return 'fail'
+
 
 # 请求模型评估结果
 @app.route('/perform_server_result', methods=['POST','GET'])
 def perform_server_result():
-    infos = request.args
-    add_server(db, Submodel, infos)
-    status.SERVER_MODEL_STATUS = 1
-    return 'success'
+    if status.CLIENT_MODEL_STATUS == 0:
+        infos = request.args
+        print("server:")
+        print(infos)
+        add_server(db, Submodel, infos)
+        status.SERVER_MODEL_STATUS = 1
+        return 'success'
+    else:
+        return 'fail'
+
 
 
 if __name__ == '__main__':

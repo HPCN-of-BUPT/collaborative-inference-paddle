@@ -37,12 +37,12 @@ def image_preprocess_yolo(img_path):
 
 if __name__ == '__main__':
     print("Client Model Analyse:")
-    c_infer_model_filepath = '../model_transmit/data/send/client_infer_yolov3'
+    c_infer_model_filepath = '../data/edge/client_infer_yolov3'
     c_flops, c_model_size, c_output_size = paddle_eval.model_analyse(c_infer_model_filepath,
                                                          input_list=[paddle_eval.make_fake_input((1, 3, 608, 608))]
                                                          )
     print("Server Model Analyse:")
-    s_infer_model_filepath = '../model_transmit/data/send/server_infer_yolov3'
+    s_infer_model_filepath = '../data/cloud/server_infer_yolov3'
     s_flops, s_model_size, s_output_size = paddle_eval.model_analyse(s_infer_model_filepath,
                                                          input_list=[paddle_eval.make_fake_input((1, 256, 76, 76), dtype='float32'),
                                                                      paddle_eval.make_fake_input((1, 512, 38, 38), dtype='float32'),
