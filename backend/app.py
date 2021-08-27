@@ -16,6 +16,8 @@ from db_utils.db_eval import *
 from db_utils.db_model import *
 from db_utils import config
 from performance import *
+from export_client import *
+from export_server import *
 import core
 
 app = Flask(__name__)
@@ -159,6 +161,10 @@ def getResult():
 @app.route('/cut', methods=['POST'])
 def cut():
     print(request.data)
+    args = parse_args()
+    print_arguments(args)
+    eval_client('./data/send')
+    eval_server('./data/send')
     return "success"
 
 # 模型切割结果
