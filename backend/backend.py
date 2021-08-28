@@ -1,6 +1,5 @@
 import socket, glob, json, struct, os, argparse, requests
 import core
-from performance import *
 from threading import Thread
 cloud_model_list = []
 edge_model_list = []
@@ -17,11 +16,6 @@ def send_edge_loop():
             # 发送边端模型文件
             for filename in glob.glob(r'./data/send/client_infer_*'):
                 if(filename not in cloud_model_list):
-                    #print(os.path.splitext(filename)[0])
-                    infos = client_analyse(os.path.splitext(filename)[0])  # 模型评估
-                    r = requests.get("http://127.0.0.1:5000/perform_client_result", params=infos)
-                    print(r.text)
-
                     cloud_model_list.append(filename)
                     send_file(conn, filename)
 
@@ -38,11 +32,6 @@ def send_cloud_loop():
             # 发送云端模型文件
             for filename in glob.glob(r'./data/send/server_infer_*'):
                 if(filename not in edge_model_list):
-                    #print(os.path.splitext(filename)[0])
-                    infos = server_analyse(os.path.splitext(filename)[0])  # 模型评估
-                    r = requests.get("http://127.0.0.1:5000/perform_server_result", params=infos)
-                    print(r.text)
-
                     edge_model_list.append(filename)
                     send_file(conn, filename)
 

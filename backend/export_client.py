@@ -54,7 +54,7 @@ def eval_client(filepath):
 
     exe.run(startup_prog)
     fluid.io.load_persistables(exe, cfg.pretrain, train_program)
-    fluid.io.save_inference_model(filepath, ['image'], outputs, exe, train_program,model_filename='split_client_model', params_filename='split_client_params')
+    fluid.io.save_inference_model(filepath, ['image'], outputs, exe, train_program,model_filename='client_infer_yolov3.pdmodel', params_filename='client_infer_yolov3.pdiparams')
     
  
 

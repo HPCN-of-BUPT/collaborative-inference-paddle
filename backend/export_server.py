@@ -57,7 +57,7 @@ def eval_server(filepath):
     train_program = train_program.clone(for_test=True)
     exe.run(startup_prog)
     fluid.io.load_persistables(exe, cfg.pretrain, train_program)
-    fluid.io.save_inference_model(filepath, ['image1','image2','image_shape'], outputs, exe, train_program,model_filename='split_server_model', params_filename='split_server_params')
+    fluid.io.save_inference_model(filepath, ['image1','image2','image_shape'], outputs, exe, train_program,model_filename='server_infer_yolov3.pdmodel', params_filename='server_infer_yolov3.pdiparams')
 
 
 if __name__ == '__main__':

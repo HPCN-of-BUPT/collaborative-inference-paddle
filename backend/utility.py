@@ -95,22 +95,22 @@ def parse_args():
     # yapf: disable
     # ENV
     add_arg('use_gpu',          bool,   True,      "Whether use GPU.")
-    add_arg('model_save_dir',   str,    'complete_pruned_model_new',     "The path to save model.")
+    add_arg('model_save_dir',   str,    './data/complete_pruned_model_new',     "The path to save model.")
     add_arg('pretrain',         str,    './data/complete_model/model_final', "The pretrain model path.")#weights/darknet53
     add_arg('weights',          str,    './data/pruned_model/model_final1', "The weights path.")#weights/yolov3
     add_arg('freezed_model',          str,    "freezed_model", "export freezed model")
     add_arg('dataset',          str,    'coco2014',  "Dataset: coco2014, coco2017.")
     add_arg('class_num',        int,    80,          "Class number.")
-    add_arg('data_dir',         str,    'dataset/coco',        "The data root path.")
+    add_arg('data_dir',         str,    './data/dataset/coco',        "The data root path.")
     add_arg('start_iter',       int,    0,      "Start iteration.")
     add_arg('use_multiprocess', bool,   True,   "add multiprocess.")
     #SOLVER
     add_arg('batch_size',       int,    8,      "Mini-batch size per device.")
     add_arg('learning_rate',    float,  0.001,  "Learning rate.")
-    add_arg('max_iter',         int,    50000, "Iter number.")
-    add_arg('snapshot_iter',    int,    20000,   "Save model every snapshot stride.")
+    add_arg('max_iter',         int,    50, "Iter number.")
+    add_arg('snapshot_iter',    int,    20,   "Save model every snapshot stride.")
     add_arg('label_smooth',     bool,   True,   "Use label smooth in class label.")
-    add_arg('no_mixup_iter',    int,    40000,  "Disable mixup in last N iter.")
+    add_arg('no_mixup_iter',    int,    40,  "Disable mixup in last N iter.")
     # TRAIN TEST INFER
     add_arg('input_size',       int,    608,    "Image input size of YOLOv3.")
     add_arg('random_shape',     bool,   True,   "Resize to random shape for train reader.")
@@ -124,7 +124,7 @@ def parse_args():
     add_arg('prune_ratio',          str,   "0.2,0.3,0.4,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,",  "Prune Ratios")
     #0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,   #,0.5,0.5,0.5,0.5,0.5,0.5,0.7,0.7,0.7,0.7,0.7,0.7,0.8,0.8,0.8,0.8,0.8,0.8
     # SINGLE EVAL AND DRAW
-    add_arg('image_path',       str,   'dataset/coco/val2014', 
+    add_arg('image_path',       str,   './data/dataset/coco/val2014',
             "The image path used to inference and visualize.")
     add_arg('image_name',       str,    'COCO_val2014_000000566975.jpg',   
             "The single image used to inference and visualize. None to inference all images in image_path")

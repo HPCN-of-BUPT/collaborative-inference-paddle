@@ -18,6 +18,7 @@ from db_utils import config
 from performance import *
 from export_client import *
 from export_server import *
+from train import *
 import core
 
 app = Flask(__name__)
@@ -157,6 +158,14 @@ def getResult():
         base64_str = base64.b64encode(f.read())
         return jsonify({'msg':'true','result':results,'img_base64':str(base64_str,'utf-8')})
 
+# 模型训练请求
+@app.route('/train', methods=['GET'])
+def train_model():
+    args = parse_args()
+    print_arguments(args)
+    train()
+    return "success"
+
 # 模型切割请求
 @app.route('/cut', methods=['POST'])
 def cut():
@@ -167,45 +176,22 @@ def cut():
     eval_server('./data/send')
     return "success"
 
-# 模型切割结果
+# 模型评估
 @app.route('/cut_result', methods=['GET'])
 def cut_result():
-    if status.CLIENT_MODEL_STATUS == 1 & status.SERVER_MODEL_STATUS == 1:
-        results = get_eval_result(db,Submodel,1)
-        status.CLIENT_MODEL_STATUS = status.SERVER_MODEL_STATUS = 0
-        return jsonify({'msg': 'success',
+    c_infos = client_analyse('./data/send/client_infer_yolov3')
+    add_client(db, Submodel, c_infos)
+
+    s_infos = server_analyse('./data/send/server_infer_yolov3')
+    add_server(db, Submodel, s_infos)
+    results = {
+        'cloud': s_infos,
+        'edge': c_infos
+    }
+    # results = get_eval_result(db,Submodel,1)
+    return jsonify({'msg': 'success',
                         'results': results
-                        })
-    else:
-        return "fail"
-
-
-# 请求模型评估结果
-@app.route('/perform_client_result', methods=['POST','GET'])
-def perform_client_result():
-    if status.CLIENT_MODEL_STATUS == 0:
-        infos = request.args
-        print("client:")
-        print(infos)
-        add_client(db, Submodel, infos)
-        status.CLIENT_MODEL_STATUS = 1
-        return 'success'
-    else:
-        return 'fail'
-
-
-# 请求模型评估结果
-@app.route('/perform_server_result', methods=['POST','GET'])
-def perform_server_result():
-    if status.CLIENT_MODEL_STATUS == 0:
-        infos = request.args
-        print("server:")
-        print(infos)
-        add_server(db, Submodel, infos)
-        status.SERVER_MODEL_STATUS = 1
-        return 'success'
-    else:
-        return 'fail'
+                    })
 
 
 # 模型部署上传ip

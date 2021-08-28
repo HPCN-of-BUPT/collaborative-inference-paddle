@@ -113,9 +113,9 @@ _C.use_gpu = True
 _C.class_num = 80
 
 # dataset path
-_C.train_file_list = 'annotations/instances_train2017.json'
+_C.train_file_list = 'annotations/instances_train2014.json'
 _C.train_data_dir = 'train2014'
-_C.val_file_list = 'annotations/instances_val2017.json'
+_C.val_file_list = 'annotations/instances_val2014.json'
 _C.val_data_dir = 'val2014'
 
 
