@@ -28,6 +28,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # 查询时会显示原始SQL语句
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+img_results = {}  #检测结果
 
 import status
 
@@ -41,12 +42,13 @@ def after_request(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
     return response
 
-#图像测试文件上传（前端-后端）
+#图像测试文件上传
 @app.route('/image_upload',methods=['POST'])
 def image_upload():
     file = request.files.get('file')
     input_dir = core.LOAD_DIR
-    file_path = input_dir + file.filename
+    status.CURR_IMGNAME = file.filename
+    file_path = os.path.join(input_dir,file.filename)
     print(file_path)
     file.save(file_path)
     return jsonify({'msg': 'success'})
@@ -71,7 +73,7 @@ def transmit_result():
             file_list.append(info)
             # image_list.append(filename)
             number += 1
-    status.EDGE_STATUS = 1
+    status.EDGE_STATUS = 1  #确定边端已接收图片
     return {"file_list" : file_list, "number": number}
 
 def read_image(img):
@@ -94,8 +96,8 @@ def read_image(img):
     img = img[np.newaxis, :]
     return origin, img, resized_img
 
-#检测边端是否已接收图片（前端-后端）
-@app.route('/edge',methods=['POST','GET'])
+#检测边端是否已接收图片
+@app.route('/edge',methods=['GET'])
 def edge():
     if status.EDGE_STATUS == 0:
         return jsonify({'msg':'false'})
@@ -109,8 +111,10 @@ def receive_result():
     results = request.args
     # flag = n, n object detected; flag = 0, no object detected
     flag = draw_box(results['result'], results['filename'])
+
     # status.ID = add_result(db, System, results['result']) #结果添加数据库
-    # status.TEST_STATUS = 1
+    img_results = results
+    status.TEST_STATUS = 1  #已检测到结果
     return "success"
 
 def draw_box(bboxes,filename):
@@ -147,16 +151,27 @@ def draw_box(bboxes,filename):
 #请求检测结果（前端）
 @app.route('/get_result',methods=['POST','GET'])
 def getResult():
-    if status.TEST_STATUS == 0:
+    if status.TEST_STATUS == 0:   #未接收到检测结果
         return jsonify({'msg':'false'})
     else:
         status.EDGE_STATUS = 0
         status.TEST_STATUS = 0
-        results = get_result(db,System,status.ID)
-
-        f = open(os.path.join(core.LOAD_DIR, results['filename']), 'rb')
+        #results = get_result(db,System,status.ID)
+        #f = open(os.path.join(core.LOAD_DIR, results['filename']), 'rb')
+        r = {
+            'filename': img_results['filename'],
+            'transmit_size': str(img_results['transmitsize']),
+            'edge_time': str(img_results['edgetime']),
+            'cloud_time': str(img_results['cloudtime']),
+            'transmit_time': str(img_results['transmittime']),
+            'cloud_edge_ratio': str(img_results['cloudtime']/img_results['edgetime']),
+            'time': str(img_results['edgetime'] + img_results['cloudtime'] + img_results['transmittime'])
+        }
+        f = open(os.path.join(core.LOAD_DIR, img_results['filename']), 'rb')
         base64_str = base64.b64encode(f.read())
-        return jsonify({'msg':'true','result':results,'img_base64':str(base64_str,'utf-8')})
+        return jsonify({'msg':'true',
+                        'results': r,
+                        'img_base64': str(base64_str,'utf-8')})
 
 # 模型训练请求
 @app.route('/train', methods=['GET'])
@@ -180,10 +195,10 @@ def cut():
 @app.route('/cut_result', methods=['GET'])
 def cut_result():
     c_infos = client_analyse('./data/send/client_infer_yolov3')
-    add_client(db, Submodel, c_infos)
+    #add_client(db, Submodel, c_infos)
 
     s_infos = server_analyse('./data/send/server_infer_yolov3')
-    add_server(db, Submodel, s_infos)
+    #add_server(db, Submodel, s_infos)
     results = {
         'cloud': s_infos,
         'edge': c_infos

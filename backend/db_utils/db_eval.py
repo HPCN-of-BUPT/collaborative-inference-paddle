@@ -28,13 +28,9 @@ def get_eval_result(db,Submodel,model_divide_id):
         'flops': c_submodel.flops, 'params': c_submodel.params, 'output_size': c_submodel.output_size
     }
 
-    # s_submodel = Submodel.query.filter(and_(Submodel.model_divide_id == model_divide_id,Submodel.type == 1)).first()
-    # s_results = {
-    #     'flops': s_submodel.flops, 'params': s_submodel.params, 'output_size': s_submodel.output_size
-    # }
-    s_submodel = Submodel.query.filter(and_(Submodel.model_divide_id == model_divide_id, Submodel.type == 1)).first()
+    s_submodel = Submodel.query.filter(and_(Submodel.model_divide_id == model_divide_id,Submodel.type == 1)).first()
     s_results = {
-        'flops': c_submodel.flops, 'params': c_submodel.params, 'output_size': c_submodel.output_size
+        'flops': s_submodel.flops, 'params': s_submodel.params, 'output_size': s_submodel.output_size
     }
     results = {
         'cloud':s_results,
