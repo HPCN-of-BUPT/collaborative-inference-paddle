@@ -5,7 +5,7 @@ CLOUD_HOST = "127.0.0.1" # 云ip
 EDGE_HOST = "127.0.0.1" # 端ip
 BACKEND_HOST = "127.0.0.1" # 后台服务ip
 
-CLOUD_MODEL_PORT = 8080 # 后台发送云端模型端口
+CLOUD_MODEL_PORT = 8083 # 后台发送云端模型端口
 CLOUD_TENSOR_PORT = 8081 # 边端发送特征端口
 EDGE_MODEL_PORT = 8082 # 后台发送边端模型端口
 

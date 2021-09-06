@@ -28,7 +28,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # 查询时会显示原始SQL语句
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
-img_results = {}  #检测结果
+
 
 import status
 
@@ -113,7 +113,7 @@ def receive_result():
     flag = draw_box(results['result'], results['filename'])
 
     # status.ID = add_result(db, System, results['result']) #结果添加数据库
-    img_results = results
+    status.img_results = results
     status.TEST_STATUS = 1  #已检测到结果
     return "success"
 
@@ -132,9 +132,9 @@ def draw_box(bboxes,filename):
     draw = ImageDraw.Draw(img)
     line_thickness = max(int(min(img.size) / 200), 2)
     # win:arial.ttf
-    # font = ImageFont.truetype("arial.ttf", size=max(round(max(img.size) / 40), 12))
+    font = ImageFont.truetype("arial.ttf", size=max(round(max(img.size) / 40), 12))
     
-    font = ImageFont.truetype("Arial.ttf", size=max(round(max(img.size) / 40), 12))
+    # font = ImageFont.truetype("Arial.ttf", size=max(round(max(img.size) / 40), 12))
 
     for box, label,score in zip(boxes, labels, scores):
         c = random.randint(0,19)
@@ -158,16 +158,17 @@ def getResult():
         status.TEST_STATUS = 0
         #results = get_result(db,System,status.ID)
         #f = open(os.path.join(core.LOAD_DIR, results['filename']), 'rb')
+        img_results = status.img_results
         r = {
             'filename': img_results['filename'],
             'transmit_size': str(img_results['transmitsize']),
             'edge_time': str(img_results['edgetime']),
             'cloud_time': str(img_results['cloudtime']),
             'transmit_time': str(img_results['transmittime']),
-            'cloud_edge_ratio': str(img_results['cloudtime']/img_results['edgetime']),
-            'time': str(img_results['edgetime'] + img_results['cloudtime'] + img_results['transmittime'])
+            'cloud_edge_ratio': str(float(img_results['cloudtime'])/float(img_results['edgetime'])),
+            'time': str(float(img_results['edgetime']) + float(img_results['cloudtime']) + float(img_results['transmittime']))
         }
-        f = open(os.path.join(core.LOAD_DIR, img_results['filename']), 'rb')
+        f = open(os.path.join(core.SAVE_DIR, img_results['filename']), 'rb')
         base64_str = base64.b64encode(f.read())
         return jsonify({'msg':'true',
                         'results': r,
