@@ -18,6 +18,8 @@ from db_utils import config
 from performance import *
 from export_client import *
 from export_server import *
+from export_client_pruned import *
+from export_server_pruned import *
 from train import *
 import core
 
@@ -165,7 +167,7 @@ def getResult():
             'edge_time': str(img_results['edgetime']),
             'cloud_time': str(img_results['cloudtime']),
             'transmit_time': str(img_results['transmittime']),
-            'cloud_edge_ratio': str(float(img_results['cloudtime'])/float(img_results['edgetime'])),
+            'cloud_edge_ratio': str(round(float(img_results['cloudtime'])/float(img_results['edgetime']),2)),
             'time': str(float(img_results['edgetime']) + float(img_results['cloudtime']) + float(img_results['transmittime']))
         }
         f = open(os.path.join(core.SAVE_DIR, img_results['filename']), 'rb')
@@ -188,17 +190,19 @@ def cut():
     print(request.data)
     args = parse_args()
     print_arguments(args)
-    eval_client('./data/send')
-    eval_server('./data/send')
+    # eval_client('./data/send')
+    # eval_server('./data/send')
+    eval_client_pruned('./data/send')
+    eval_server_pruned('./data/send')
     return "success"
 
 # 模型评估
 @app.route('/cut_result', methods=['GET'])
 def cut_result():
-    c_infos = client_analyse('./data/send/client_infer_yolov3')
+    c_infos = client_analyse('./data/send/client_infer_pruned')
     #add_client(db, Submodel, c_infos)
 
-    s_infos = server_analyse('./data/send/server_infer_yolov3')
+    s_infos = server_analyse('./data/send/server_infer_pruned')
     #add_server(db, Submodel, s_infos)
     results = {
         'cloud': s_infos,

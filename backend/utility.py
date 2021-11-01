@@ -98,7 +98,7 @@ def parse_args():
     add_arg('model_save_dir',   str,    './data/complete_pruned_model_new',     "The path to save model.")
     add_arg('pretrain',         str,    './data/complete_model/model_final', "The pretrain model path.")#weights/darknet53
     add_arg('weights',          str,    './data/pruned_model/model_final1', "The weights path.")#weights/yolov3
-    add_arg('freezed_model',          str,    "freezed_model", "export freezed model")
+    add_arg('freezed_model',          str,    './data/freezed_model', "export freezed model")
     add_arg('dataset',          str,    'coco2014',  "Dataset: coco2014, coco2017.")
     add_arg('class_num',        int,    80,          "Class number.")
     add_arg('data_dir',         str,    './data/dataset/coco',        "The data root path.")

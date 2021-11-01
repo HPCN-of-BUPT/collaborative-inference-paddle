@@ -15,8 +15,8 @@ ERROR_RATE = 0 # 信道误码率
 
 SAVE_DIR = "./data/output" # 检测结果保存路径
 LOAD_DIR = "./data/input" # 待检测文件保存路径
-CLOUD_MODEL_DIR = "./data/cloud/server_infer_yolov3" # 云端加载模型路径
-EDGE_MODEL_DIR = "./data/edge/client_infer_yolov3" # 端加载模型路径
+CLOUD_MODEL_DIR = "./data/cloud/server_infer_pruned" # 云端加载模型路径
+EDGE_MODEL_DIR = "./data/edge/client_infer_pruned" # 端加载模型路径
 
 PIXEL_MEANS = [0.485, 0.456, 0.406] # 归一化均值
 PIXEL_STDS = [0.229, 0.224, 0.225] # 归一化方差

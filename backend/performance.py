@@ -58,3 +58,7 @@ def server_():
         s_program)  # 计算model_size的函数，返回模型的model_size（单位byte）和变量个数var_count（单位个）。请根据需要取值。
 
     return s_fps,s_msize,s_msize
+
+if __name__ == '__main__':
+    client_analyse('./data/send/client_infer_pruned')
+    server_analyse('./data/send/server_infer_pruned')
